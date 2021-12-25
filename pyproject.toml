@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ci-project"
+version = "0.1.0"
+description = ""
+authors = ["Santiago del Rey Juárez <santiago.del.rey@estudiantat.upc.edu>"]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+numpy = "^1.21.5"
+
+[tool.poetry.dev-dependencies]
+black = "^21.12b0"
+bandit = "^1.7.1"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
