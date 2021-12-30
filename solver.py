@@ -3,8 +3,7 @@ import sys
 from random import getrandbits
 
 import numpy as np
-
-MUTATION_PROBABILITY = 0.2
+from numpy.random import default_rng
 
 
 def magic_d(weights, values, capacity):
@@ -26,92 +25,146 @@ def magic_d(weights, values, capacity):
     return value
 
 
-def init_population(n, m):
+def elitism(population: np.ndarray, fitting_values: np.ndarray, keep: int):
     """
-    Randomly initialize the population.
-    :param n: Number of individuals.
-    :param m: Number of chromosomes per individual.
-    :return: An n x m matrix with the population individuals.
+    Perform elitism selection on a population.
+    :param numpy.array population: List of individuals.
+    :param fitting_values: Fitness value for each individual.
+    :param keep: Number of individuals to keep.
+    :return: The best N individuals defined by the ``keep`` parameter.
+    :rtype : np.ndarray
     """
-    population = np.zeros((n, m), dtype=np.uint8)
-    for i in range(n):
-        x = getrandbits(m)
-        print([int(s) for s in f"{x:0{m}b}"])
-        population[i] = np.array([int(s) for s in f"{x:0{m}b}"], dtype=np.uint8)
-
-    return population
-
-
-def get_fitting_value(population, items_values, items_weights, capacity):
-    fitting_values = np.zeros(population.shape[0])
-    for i, individual in enumerate(population):
-        # If the individual exceeds the capacity its value is 0.
-        # Otherwise, the value is the total value of the items it selected.
-        if items_weights[individual == 1].sum() > capacity:
-            fitting_values[i] = 0
-        else:
-            fitting_values[i] = items_values[individual == 1].sum()
-
-    return fitting_values
-
-
-def elitism(population, fitting_values, keep):
     return population[np.argpartition(fitting_values, -keep)[-keep:]]
 
 
-def tournament_selection(k, population, fitting_values, keep):
+def tournament_selection(k: int, population: np.ndarray, fitting_values: np.ndarray, keep: int):
+    """
+    Perform a tournament selection.
+    :param k: Number of randomly selected individuals to use in the selection.
+    :param population: List of individuals.
+    :param fitting_values: Fitness value for each individual.
+    :param keep: Number of individuals to keep in the selection.
+    :return: The list of individuals that won the tournament.
+    :rtype : np.ndarray
+    """
     selection = np.random.choice(range(population.shape[0]), k)
     selection_val = fitting_values[selection]
 
     return elitism(population, selection_val, keep)
 
 
-def mutate(individual):
-    for i in range(individual.shape[0]):
-        if random.random() <= MUTATION_PROBABILITY:
-            individual[i] = 1 ^ individual[i]
+class GeneticAlgorithm:
+    # Options for crossover methods
+    N_INDIVIDUALS = 50
+    MUTATION_PROBABILITY = 0.2
+    ONE_POINT_CROSSOVER = 0
+    TWO_POINT_CROSSOVER = 1
+    UNIFORM_CROSSOVER = 2
 
+    # Options for selection methods
+    TOURNAMENT = 0
+    ELITISM = 1
 
-def one_point_crossover(parent1, parent2):
-    point = np.random.randint(1, parent1.shape[0] - 1)
-    offspring1 = np.concatenate((parent1[:point], parent2[point:]))
-    offspring2 = np.concatenate((parent2[:point], parent1[point:]))
-    return mutate(offspring1), mutate(offspring2)
+    def __init__(self, n, m, values, weights, capacity):
+        self.n = n
+        self.m = m
+        self.values = values
+        self.weights = weights
+        self.capacity = capacity
+        self.population = np.zeros((self.n, self.m))
 
+        self.init_population()
+        self.current_fitness = self.fitness_value(self.population)
 
-def two_point_crossover(parent1, parent2):
-    point1 = np.random.randint(1, parent1.shape[0] - 1)
+    def init_population(self):
+        """
+        Randomly initialize the population.
+        """
+        pop = np.array([], dtype=int)
+        rng = default_rng()
 
-    while True:
-        point2 = np.random.randint(1, parent1.shape[0] - 1)
-        if point2 != point1:
-            break
+        # Generate N random unique individuals
+        while len(pop) < self.n:
+            pop = np.unique(
+                np.append(pop, np.unique(rng.integers(low=0, high=(2 ** self.m - 1), size=(self.n - len(pop))))))
 
-    parent1_s1, parent1_s2, parent1_s3 = np.split(parent1, np.sort([point1, point2]))
-    parent2_s1, parent2_s2, parent2_s3 = np.split(parent2, np.sort([point1, point2]))
-    offspring1 = np.concatenate((parent1_s1, parent2_s2, parent1_s3))
-    offspring2 = np.concatenate((parent2_s1, parent1_s2, parent2_s3))
-    return mutate(offspring1), mutate(offspring2)
+        for i in range(self.n):
+            self.population[i] = np.array([int(s) for s in np.binary_repr(pop[i], self.m)], dtype=np.uint8)
 
+    def fitness_value(self, chromosomes):
+        fitness_values = np.zeros(chromosomes.shape[0])
+        for i, chromosome in enumerate(chromosomes):
+            # If the chromosome exceeds the capacity its value is 0.
+            # Otherwise, the value is the total value of the items it selected.
+            if np.dot(self.weights, chromosome) > self.capacity:
+                fitness_values[i] = np.NINF
+            else:
+                fitness_values[i] = np.dot(self.values, chromosome)
 
-def ux_crossover(parent1, parent2):
-    offspring1 = parent1.copy()
-    offspring2 = parent2.copy()
-    for i in range(parent1.shape[0]):
-        if random.random() < 0.5:
-            offspring1[i] = parent2[i]
-            offspring2[i] = parent1[i]
+        return fitness_values
 
-    return mutate(offspring1), mutate(offspring2)
+    def mutate(self, individual):
+        for i in range(individual.shape[0]):
+            if random.random() <= self.MUTATION_PROBABILITY:
+                individual[i] = 1 ^ individual[i]
 
+    def one_point_crossover(self, parent1, parent2):
+        point = np.random.randint(1, parent1.shape[0] - 1)
+        offspring1 = np.concatenate((parent1[:point], parent2[point:]))
+        offspring2 = np.concatenate((parent2[:point], parent1[point:]))
+        return self.mutate(offspring1), self.mutate(offspring2)
 
-def crossover(parent1, parent2, method="one-point"):
-    if method == "one-point":
-        return one_point_crossover(parent1, parent2)
-    elif method == "two-point":
-        return two_point_crossover(parent1, parent2)
-    elif method == "ux":
-        return ux_crossover(parent1, parent2)
+    def two_point_crossover(self, parent1, parent2):
+        point1 = np.random.randint(1, parent1.shape[0] - 1)
+
+        while True:
+            point2 = np.random.randint(1, parent1.shape[0] - 1)
+            if point2 != point1:
+                break
+
+        parent1_s1, parent1_s2, parent1_s3 = np.split(parent1, np.sort([point1, point2]))
+        parent2_s1, parent2_s2, parent2_s3 = np.split(parent2, np.sort([point1, point2]))
+        offspring1 = np.concatenate((parent1_s1, parent2_s2, parent1_s3))
+        offspring2 = np.concatenate((parent2_s1, parent1_s2, parent2_s3))
+        return self.mutate(offspring1), self.mutate(offspring2)
+
+    def ux_crossover(self, parent1, parent2):
+        offspring1 = parent1.copy()
+        offspring2 = parent2.copy()
+        for i in range(parent1.shape[0]):
+            if random.random() < 0.5:
+                offspring1[i] = parent2[i]
+                offspring2[i] = parent1[i]
+
+        return self.mutate(offspring1), self.mutate(offspring2)
+
+    def crossover(self, parent1, parent2, method=0):
+        if method == self.ONE_POINT_CROSSOVER:
+            return self.one_point_crossover(parent1, parent2)
+        elif method == self.TWO_POINT_CROSSOVER:
+            return self.two_point_crossover(parent1, parent2)
+        elif method == self.UNIFORM_CROSSOVER:
+            return self.ux_crossover(parent1, parent2)
+
+    def selection(self, chromosomes, fitness, k, keep, method=0):
+        if method == self.TOURNAMENT:
+            return tournament_selection(k, chromosomes, fitness, keep)
+        elif method == self.ELITISM:
+            return elitism(chromosomes, fitness, keep)
+
+    def mate(self, chromosomes, crossover=0):
+        offspring = np.zeros(self.population.shape)
+        for i in range(0, self.N_INDIVIDUALS, 2):
+            parent1 = tournament_selection(2, self.population, self.current_fitness, 1)
+            parent2 = tournament_selection(2, self.population, self.current_fitness, 1)
+            offspring1, offspring2 = self.crossover(parent1, parent2, crossover)
+            offspring[i] = offspring1
+            offspring[i + 1] = offspring2
+
+        offspring_fitness = self.fitness_value(offspring)
+        self.population = elitism(np.concatenate((chromosomes, offspring)),
+                                  np.concatenate((self.current_fitness, offspring_fitness)), self.N_INDIVIDUALS)
+        self.current_fitness = self.fitness_value(self.population)
 
 
 def solve_it(input_data):
@@ -140,6 +193,9 @@ def solve_it(input_data):
     # values is a list containing the different values for the items
 
     # WRITE YOUR OWN CODE HERE #####################################
+
+    # population = init_population(N_INDIVUDUALS, items)
+    # population = mate(population, items_values, items_wieghts, capacity)
 
     ## MAGIC ##
     # best_value = magic_d(weights,values,capacity)
