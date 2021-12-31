@@ -1,9 +1,9 @@
-import random
 import sys
-from random import getrandbits
 
 import numpy as np
+import offspring as offspring
 from numpy.random import default_rng
+from tqdm import tqdm
 
 
 def magic_d(weights, values, capacity):
@@ -37,26 +37,27 @@ def elitism(population: np.ndarray, fitting_values: np.ndarray, keep: int):
     return population[np.argpartition(fitting_values, -keep)[-keep:]]
 
 
-def tournament_selection(k: int, population: np.ndarray, fitting_values: np.ndarray, keep: int):
+def tournament_selection(
+    k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
+):
     """
     Perform a tournament selection.
     :param k: Number of randomly selected individuals to use in the selection.
-    :param population: List of individuals.
+    :param population_idx: List of population indices.
     :param fitting_values: Fitness value for each individual.
     :param keep: Number of individuals to keep in the selection.
     :return: The list of individuals that won the tournament.
     :rtype : np.ndarray
     """
-    selection = np.random.choice(range(population.shape[0]), k)
+    selection = np.random.choice(population_idx, k)
     selection_val = fitting_values[selection]
 
-    return elitism(population, selection_val, keep)
+    return elitism(population_idx, selection_val, keep)
 
 
 class GeneticAlgorithm:
     # Options for crossover methods
-    N_INDIVIDUALS = 50
-    MUTATION_PROBABILITY = 0.2
+    MUTATION_PROBABILITY = 0.5
     ONE_POINT_CROSSOVER = 0
     TWO_POINT_CROSSOVER = 1
     UNIFORM_CROSSOVER = 2
@@ -65,14 +66,40 @@ class GeneticAlgorithm:
     TOURNAMENT = 0
     ELITISM = 1
 
-    def __init__(self, n, m, values, weights, capacity):
-        self.n = n
-        self.m = m
+    def __init__(
+        self,
+        n_generations,
+        stall_generations,
+        population_size,
+        chromosome_size,
+        values,
+        weights,
+        capacity,
+        selection_method,
+        crossover_method,
+        init_pop_range=None,
+    ):
+        self.n_generations = n_generations
+        self.stall_generations = stall_generations
+        self.population_size = population_size
+        self.chromosome_size = chromosome_size
         self.values = values
         self.weights = weights
         self.capacity = capacity
-        self.population = np.zeros((self.n, self.m))
+        self.selection_method = selection_method
+        self.crossover_method = crossover_method
+        self.population = np.zeros((self.population_size, self.chromosome_size))
+        self.rng = default_rng()
 
+        if init_pop_range is not None:
+            self.init_pop_range = init_pop_range
+        else:
+            self.init_pop_range = (0, 2 ** self.chromosome_size - 1)
+
+        if (self.init_pop_range[1] - self.init_pop_range[0] + 1) < self.population_size:
+            raise ValueError(
+                "The initial population range is lower than the population size."
+            )
         self.init_population()
         self.current_fitness = self.fitness_value(self.population)
 
@@ -81,15 +108,31 @@ class GeneticAlgorithm:
         Randomly initialize the population.
         """
         pop = np.array([], dtype=int)
-        rng = default_rng()
 
+        low_range, high_range = self.init_pop_range
         # Generate N random unique individuals
-        while len(pop) < self.n:
-            pop = np.unique(
-                np.append(pop, np.unique(rng.integers(low=0, high=(2 ** self.m - 1), size=(self.n - len(pop))))))
+        if (high_range - low_range + 1) == self.population_size:
+            pop = np.array(range(self.population_size))
+        else:
+            while len(pop) < self.population_size:
+                pop = np.unique(
+                    np.append(
+                        pop,
+                        np.unique(
+                            self.rng.integers(
+                                low=low_range,
+                                high=high_range,
+                                size=(self.population_size - len(pop)),
+                            )
+                        ),
+                    )
+                )
 
-        for i in range(self.n):
-            self.population[i] = np.array([int(s) for s in np.binary_repr(pop[i], self.m)], dtype=np.uint8)
+        for i in range(self.population_size):
+            self.population[i] = np.array(
+                [int(s) for s in np.binary_repr(pop[i], self.chromosome_size)],
+                dtype=np.uint8,
+            )
 
     def fitness_value(self, chromosomes):
         fitness_values = np.zeros(chromosomes.shape[0])
@@ -104,67 +147,123 @@ class GeneticAlgorithm:
         return fitness_values
 
     def mutate(self, individual):
-        for i in range(individual.shape[0]):
-            if random.random() <= self.MUTATION_PROBABILITY:
-                individual[i] = 1 ^ individual[i]
+        if self.rng.random() < self.MUTATION_PROBABILITY:
+            gene = self.rng.choice(range(self.chromosome_size))
+            individual[gene] = not (individual[gene])
 
     def one_point_crossover(self, parent1, parent2):
-        point = np.random.randint(1, parent1.shape[0] - 1)
+        point = self.rng.integers(1, self.chromosome_size - 1)
         offspring1 = np.concatenate((parent1[:point], parent2[point:]))
         offspring2 = np.concatenate((parent2[:point], parent1[point:]))
-        return self.mutate(offspring1), self.mutate(offspring2)
+        self.mutate(offspring1)
+        self.mutate(offspring2)
+        return offspring1, offspring2
 
     def two_point_crossover(self, parent1, parent2):
-        point1 = np.random.randint(1, parent1.shape[0] - 1)
+        points = self.rng.choice(range(1, self.chromosome_size - 1), 2, replace=False)
+        point1 = min(points)
+        point2 = max(points)
 
-        while True:
-            point2 = np.random.randint(1, parent1.shape[0] - 1)
-            if point2 != point1:
-                break
-
-        parent1_s1, parent1_s2, parent1_s3 = np.split(parent1, np.sort([point1, point2]))
-        parent2_s1, parent2_s2, parent2_s3 = np.split(parent2, np.sort([point1, point2]))
+        parent1_s1, parent1_s2, parent1_s3 = np.split(parent1, [point1, point2])
+        parent2_s1, parent2_s2, parent2_s3 = np.split(parent2, [point1, point2])
         offspring1 = np.concatenate((parent1_s1, parent2_s2, parent1_s3))
         offspring2 = np.concatenate((parent2_s1, parent1_s2, parent2_s3))
-        return self.mutate(offspring1), self.mutate(offspring2)
+        self.mutate(offspring1)
+        self.mutate(offspring2)
+        return offspring1, offspring2
 
     def ux_crossover(self, parent1, parent2):
         offspring1 = parent1.copy()
         offspring2 = parent2.copy()
-        for i in range(parent1.shape[0]):
-            if random.random() < 0.5:
+        seed = self.rng.random(self.chromosome_size)
+        for s, i in enumerate(seed):
+            if s < 0.5:
                 offspring1[i] = parent2[i]
                 offspring2[i] = parent1[i]
 
-        return self.mutate(offspring1), self.mutate(offspring2)
+        self.mutate(offspring1)
+        self.mutate(offspring2)
+        return offspring1, offspring2
 
-    def crossover(self, parent1, parent2, method=0):
-        if method == self.ONE_POINT_CROSSOVER:
+    def crossover(self, parent1, parent2):
+        if self.crossover_method == self.ONE_POINT_CROSSOVER:
             return self.one_point_crossover(parent1, parent2)
-        elif method == self.TWO_POINT_CROSSOVER:
+        elif self.crossover_method == self.TWO_POINT_CROSSOVER:
             return self.two_point_crossover(parent1, parent2)
-        elif method == self.UNIFORM_CROSSOVER:
+        elif self.crossover_method == self.UNIFORM_CROSSOVER:
             return self.ux_crossover(parent1, parent2)
 
-    def selection(self, chromosomes, fitness, k, keep, method=0):
-        if method == self.TOURNAMENT:
+    def selection(self, chromosomes, fitness, keep, k=2):
+        """
+        Perform the population selection.
+        :param population: List of individuals.
+        :param fitting_values: Fitness value for each individual.
+        :param keep: Number of individuals to keep in the selection.
+        :param k: Number of randomly selected individuals to use in the selection.
+        :return: The list of individuals that won the selection.
+        :rtype : np.ndarray
+        """
+        if self.selection_method == self.TOURNAMENT:
             return tournament_selection(k, chromosomes, fitness, keep)
-        elif method == self.ELITISM:
+        elif self.selection_method == self.ELITISM:
             return elitism(chromosomes, fitness, keep)
 
-    def mate(self, chromosomes, crossover=0):
-        offspring = np.zeros(self.population.shape)
-        for i in range(0, self.N_INDIVIDUALS, 2):
-            parent1 = tournament_selection(2, self.population, self.current_fitness, 1)
-            parent2 = tournament_selection(2, self.population, self.current_fitness, 1)
-            offspring1, offspring2 = self.crossover(parent1, parent2, crossover)
-            offspring[i] = offspring1
-            offspring[i + 1] = offspring2
+    def run(self):
+        winner_fitness = np.NINF
+        stall_generations = 0
+        optimal_found = 1
+        for _ in tqdm(range(self.n_generations), leave=False):
+            population_idx = np.arange(self.population_size)
+            offspring = np.zeros(self.population.shape)
+            k = 2
+            for i in range(0, self.population_size, 2):
+                if len(population_idx) > k:
+                    parent1_idx = self.selection(
+                        population_idx, self.current_fitness, keep=1, k=k
+                    )[0]
+                    population_idx = population_idx[population_idx != parent1_idx]
 
-        offspring_fitness = self.fitness_value(offspring)
-        self.population = elitism(np.concatenate((chromosomes, offspring)),
-                                  np.concatenate((self.current_fitness, offspring_fitness)), self.N_INDIVIDUALS)
-        self.current_fitness = self.fitness_value(self.population)
+                    parent2_idx = self.selection(
+                        population_idx, self.current_fitness, keep=1, k=k
+                    )[0]
+                    population_idx = population_idx[population_idx != parent2_idx]
+                elif len(population_idx) < k:
+                    continue
+                else:
+                    parent1_idx = population_idx[0]
+                    parent2_idx = population_idx[1]
+
+                offspring1, offspring2 = self.crossover(
+                    self.population[parent1_idx], self.population[parent2_idx]
+                )
+                offspring[i] = offspring1
+                offspring[i + 1] = offspring2
+
+            offspring = np.unique(offspring, axis=0)
+            offspring_fitness = self.fitness_value(offspring)
+            self.population = elitism(
+                np.concatenate((self.population, offspring)),
+                np.concatenate((self.current_fitness, offspring_fitness)),
+                self.population_size,
+            )
+            self.current_fitness = self.fitness_value(self.population)
+
+            if np.max(self.current_fitness) == winner_fitness:
+                stall_generations += 1
+            else:
+                stall_generations = 0
+                winner_fitness = np.max(self.current_fitness)
+
+            if stall_generations >= self.stall_generations:
+                optimal_found = 0
+                break
+
+        fittest_individual = np.argmax(self.current_fitness)
+        return (
+            self.population[fittest_individual],
+            self.current_fitness[fittest_individual],
+            optimal_found,
+        )
 
 
 def solve_it(input_data):
@@ -194,20 +293,33 @@ def solve_it(input_data):
 
     # WRITE YOUR OWN CODE HERE #####################################
 
-    # population = init_population(N_INDIVUDUALS, items)
-    # population = mate(population, items_values, items_wieghts, capacity)
+    pop_size = items ** 2
+    ga = GeneticAlgorithm(
+        1000,
+        500,
+        pop_size,
+        items,
+        values,
+        weights,
+        capacity,
+        GeneticAlgorithm.ONE_POINT_CROSSOVER,
+        GeneticAlgorithm.TOURNAMENT,
+        [90000, 120000],
+    )
+    taken, value, optimal_found = ga.run()
 
     ## MAGIC ##
-    # best_value = magic_d(weights,values,capacity)
+    # TODO: Save all best values in files and read optimal solution to check if it is equal to the one found.
+    # best_value = magic_d(weights, values, capacity)
 
-    value = 0
-    taken = items * [0]
-
-    value = magic_d(weights, values, capacity)
+    # value = 0
+    # taken = items * [0]
+    #
+    # value = magic_d(weights, values, capacity)
 
     # STOP WRITING YOUR CODE HERE ###################################
 
-    output_data = str(value) + " " + str(0) + "\n"
+    output_data = str(value) + " " + str(optimal_found) + "\n"
     output_data += " ".join(map(str, taken))
     return output_data
 
