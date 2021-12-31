@@ -1,7 +1,6 @@
 import sys
 
 import numpy as np
-import offspring as offspring
 from numpy.random import default_rng
 from tqdm import tqdm
 
@@ -84,13 +83,13 @@ class GeneticAlgorithm:
         self.stall_generations = stall_generations
         self.population_size = population_size
         self.chromosome_size = chromosome_size
-        self.values = np.array(values)
-        self.weights = np.array(weights)
+        self.values = np.array(values, dtype=int)
+        self.weights = np.array(weights, dtype=int)
         self.capacity = capacity
         self.selection_method = selection_method
         self.crossover_method = crossover_method
-        self.population = np.zeros((self.population_size, self.chromosome_size))
-        self.original_order = np.array([])
+        self.population = np.zeros((self.population_size, self.chromosome_size), dtype=np.int8)
+        self.original_order = np.array([], dtype=int)
         self.rng = default_rng()
 
         if init_pop_range is not None:
@@ -223,7 +222,7 @@ class GeneticAlgorithm:
         optimal_found = 1
         for _ in tqdm(range(self.n_generations), leave=False):
             population_idx = np.arange(self.population_size)
-            offspring = np.zeros(self.population.shape)
+            offspring = np.zeros(self.population.shape, dtype=np.int8)
             k = 2
             for i in range(0, self.population_size, 2):
                 if len(population_idx) > k:
@@ -273,13 +272,13 @@ class GeneticAlgorithm:
         if self.original_order.size == 0:
             return (
                 self.population[fittest_individual],
-                self.current_fitness[fittest_individual],
+                int(self.current_fitness[fittest_individual]),
                 optimal_found,
             )
         else:
             return (
                 self.population[fittest_individual][self.original_order],
-                self.current_fitness[fittest_individual],
+                int(self.current_fitness[fittest_individual]),
                 optimal_found,
             )
 
@@ -314,8 +313,8 @@ def solve_it(input_data):
 
     pop_size = items ** 2
     ga = GeneticAlgorithm(
-        1000,
-        500,
+        10000,
+        5000,
         pop_size,
         items,
         values,
@@ -323,7 +322,7 @@ def solve_it(input_data):
         capacity,
         GeneticAlgorithm.ONE_POINT_CROSSOVER,
         GeneticAlgorithm.TOURNAMENT,
-        [99100, 120000],
+        # [99100, 120000],
         # sort_values=True,
     )
     taken, value, optimal_found = ga.run()
