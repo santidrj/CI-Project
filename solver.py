@@ -249,11 +249,18 @@ class GeneticAlgorithm:
 
             offspring = np.unique(offspring, axis=0)
             offspring_fitness = self.fitness_value(offspring)
-            self.population = elitism(
-                np.concatenate((self.population, offspring)),
-                np.concatenate((self.current_fitness, offspring_fitness)),
-                self.population_size,
-            )
+            if np.all(self.current_fitness == np.NINF) and np.all(offspring_fitness == np.NINF):
+                # If there are no individuals with good fitness,
+                # then we replace half of the previous generation with the new one.
+                pop_1 = self.rng.choice(self.population, self.population_size // 2, replace=False)
+                pop_2 = self.rng.choice(offspring, self.population_size // 2, replace=False)
+                self.population = np.concatenate((pop_1, pop_2))
+            else:
+                self.population = elitism(
+                    np.concatenate((self.population, offspring)),
+                    np.concatenate((self.current_fitness, offspring_fitness)),
+                    self.population_size,
+                )
             self.current_fitness = self.fitness_value(self.population)
 
             if np.max(self.current_fitness) == winner_fitness:
@@ -281,7 +288,6 @@ class GeneticAlgorithm:
                 int(self.current_fitness[fittest_individual]),
                 optimal_found,
             )
-
 
 
 def solve_it(input_data):
@@ -313,16 +319,16 @@ def solve_it(input_data):
 
     pop_size = items ** 2
     ga = GeneticAlgorithm(
-        10000,
-        5000,
-        pop_size,
-        items,
-        values,
-        weights,
-        capacity,
-        GeneticAlgorithm.ONE_POINT_CROSSOVER,
-        GeneticAlgorithm.TOURNAMENT,
-        # [99100, 120000],
+        n_generations=10000,
+        stall_generations=5000,
+        population_size=pop_size,
+        chromosome_size=items,
+        values=values,
+        weights=weights,
+        capacity=capacity,
+        selection_method=GeneticAlgorithm.TOURNAMENT,
+        crossover_method=GeneticAlgorithm.ONE_POINT_CROSSOVER,
+        # init_pop_range = [99100, 120000],
         # sort_values=True,
     )
     taken, value, optimal_found = ga.run()
