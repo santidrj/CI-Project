@@ -219,7 +219,7 @@ class GeneticAlgorithm:
     def run(self):
         winner_fitness = np.NINF
         stall_generations = 0
-        optimal_found = 1
+        optimal_found = 0
         for _ in tqdm(range(self.n_generations), leave=False):
             population_idx = np.arange(self.population_size)
             offspring = np.zeros(self.population.shape, dtype=np.int8)
@@ -271,7 +271,7 @@ class GeneticAlgorithm:
 
             if stall_generations >= self.stall_generations:
                 if winner_fitness != np.NINF:
-                    optimal_found = 0
+                    optimal_found = 1
                 break
 
         fittest_individual = np.argmax(self.current_fitness)
@@ -319,23 +319,23 @@ def solve_it(input_data):
 
     pop_size = items ** 2
     ga = GeneticAlgorithm(
-        n_generations=10000,
-        stall_generations=5000,
+        n_generations=5000,
+        stall_generations=500,
         population_size=pop_size,
         chromosome_size=items,
         values=values,
         weights=weights,
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
-        crossover_method=GeneticAlgorithm.ONE_POINT_CROSSOVER,
-        # init_pop_range = [99100, 120000],
-        # sort_values=True,
+        crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
+        init_pop_range=[1, 2 ** (items // 2) - 1],
+        sort_values=True,
     )
     taken, value, optimal_found = ga.run()
 
     ## MAGIC ##
     # TODO: Save all best values in files and read optimal solution to check if it is equal to the one found.
-    # best_value = magic_d(weights, values, capacity)
+    best_value = magic_d(weights, values, capacity)
 
     # value = 0
     # taken = items * [0]
@@ -344,7 +344,7 @@ def solve_it(input_data):
 
     # STOP WRITING YOUR CODE HERE ###################################
 
-    output_data = str(value) + " " + str(optimal_found) + "\n"
+    output_data = str(value) + " " + str(int(value == best_value)) + "\n"
     output_data += " ".join(map(str, taken))
     return output_data
 
