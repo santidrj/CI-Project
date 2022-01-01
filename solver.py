@@ -95,9 +95,9 @@ class GeneticAlgorithm:
         if init_pop_range is not None:
             self.init_pop_range = init_pop_range
         else:
-            self.init_pop_range = (0, 2 ** self.chromosome_size - 1)
+            self.init_pop_range = (0, 2 ** self.chromosome_size)
 
-        if (self.init_pop_range[1] - self.init_pop_range[0] + 1) < self.population_size:
+        if (self.init_pop_range[1] - self.init_pop_range[0]) < self.population_size:
             raise ValueError(
                 "The initial population range is lower than the population size."
             )
@@ -119,7 +119,7 @@ class GeneticAlgorithm:
 
         low_range, high_range = self.init_pop_range
         # Generate N random unique individuals
-        if (high_range - low_range + 1) == self.population_size:
+        if (high_range - low_range) == self.population_size:
             pop = np.array(range(self.population_size))
         else:
             while len(pop) < self.population_size:
@@ -327,8 +327,8 @@ def solve_it(input_data):
         weights=weights,
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
-        crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
-        init_pop_range=[1, 2 ** (items // 2) - 1],
+        crossover_method=GeneticAlgorithm.ONE_POINT_CROSSOVER,
+        # init_pop_range=[1, 2 ** (items // 2) - 1],
         sort_values=True,
     )
     taken, value, optimal_found = ga.run()
