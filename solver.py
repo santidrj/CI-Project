@@ -1,7 +1,6 @@
 import sys
 
 import numpy as np
-import offspring as offspring
 from numpy.random import default_rng
 from tqdm import tqdm
 
@@ -38,7 +37,7 @@ def elitism(population: np.ndarray, fitting_values: np.ndarray, keep: int):
 
 
 def tournament_selection(
-    k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
+        k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
 ):
     """
     Perform a tournament selection.
@@ -67,28 +66,30 @@ class GeneticAlgorithm:
     ELITISM = 1
 
     def __init__(
-        self,
-        n_generations,
-        stall_generations,
-        population_size,
-        chromosome_size,
-        values,
-        weights,
-        capacity,
-        selection_method,
-        crossover_method,
-        init_pop_range=None,
+            self,
+            n_generations,
+            stall_generations,
+            population_size,
+            chromosome_size,
+            values,
+            weights,
+            capacity,
+            selection_method,
+            crossover_method,
+            init_pop_range=None,
+            sort_values=False,
     ):
         self.n_generations = n_generations
         self.stall_generations = stall_generations
         self.population_size = population_size
         self.chromosome_size = chromosome_size
-        self.values = values
-        self.weights = weights
+        self.values = np.array(values, dtype=int)
+        self.weights = np.array(weights, dtype=int)
         self.capacity = capacity
         self.selection_method = selection_method
         self.crossover_method = crossover_method
-        self.population = np.zeros((self.population_size, self.chromosome_size))
+        self.population = np.zeros((self.population_size, self.chromosome_size), dtype=np.int8)
+        self.original_order = np.array([], dtype=int)
         self.rng = default_rng()
 
         if init_pop_range is not None:
@@ -101,6 +102,13 @@ class GeneticAlgorithm:
                 "The initial population range is lower than the population size."
             )
         self.init_population()
+
+        if sort_values:
+            sort_indices = np.argsort(self.values / self.weights)
+            self.original_order = np.argsort(sort_indices)
+            self.values = self.values[sort_indices]
+            self.weights = self.weights[sort_indices]
+
         self.current_fitness = self.fitness_value(self.population)
 
     def init_population(self):
@@ -214,7 +222,7 @@ class GeneticAlgorithm:
         optimal_found = 1
         for _ in tqdm(range(self.n_generations), leave=False):
             population_idx = np.arange(self.population_size)
-            offspring = np.zeros(self.population.shape)
+            offspring = np.zeros(self.population.shape, dtype=np.int8)
             k = 2
             for i in range(0, self.population_size, 2):
                 if len(population_idx) > k:
@@ -241,11 +249,18 @@ class GeneticAlgorithm:
 
             offspring = np.unique(offspring, axis=0)
             offspring_fitness = self.fitness_value(offspring)
-            self.population = elitism(
-                np.concatenate((self.population, offspring)),
-                np.concatenate((self.current_fitness, offspring_fitness)),
-                self.population_size,
-            )
+            if np.all(self.current_fitness == np.NINF) and np.all(offspring_fitness == np.NINF):
+                # If there are no individuals with good fitness,
+                # then we replace half of the previous generation with the new one.
+                pop_1 = self.rng.choice(self.population, self.population_size // 2, replace=False)
+                pop_2 = self.rng.choice(offspring, self.population_size // 2, replace=False)
+                self.population = np.concatenate((pop_1, pop_2))
+            else:
+                self.population = elitism(
+                    np.concatenate((self.population, offspring)),
+                    np.concatenate((self.current_fitness, offspring_fitness)),
+                    self.population_size,
+                )
             self.current_fitness = self.fitness_value(self.population)
 
             if np.max(self.current_fitness) == winner_fitness:
@@ -255,15 +270,24 @@ class GeneticAlgorithm:
                 winner_fitness = np.max(self.current_fitness)
 
             if stall_generations >= self.stall_generations:
-                optimal_found = 0
+                if winner_fitness != np.NINF:
+                    optimal_found = 0
                 break
 
         fittest_individual = np.argmax(self.current_fitness)
-        return (
-            self.population[fittest_individual],
-            self.current_fitness[fittest_individual],
-            optimal_found,
-        )
+
+        if self.original_order.size == 0:
+            return (
+                self.population[fittest_individual],
+                int(self.current_fitness[fittest_individual]),
+                optimal_found,
+            )
+        else:
+            return (
+                self.population[fittest_individual][self.original_order],
+                int(self.current_fitness[fittest_individual]),
+                optimal_found,
+            )
 
 
 def solve_it(input_data):
@@ -295,16 +319,17 @@ def solve_it(input_data):
 
     pop_size = items ** 2
     ga = GeneticAlgorithm(
-        1000,
-        500,
-        pop_size,
-        items,
-        values,
-        weights,
-        capacity,
-        GeneticAlgorithm.ONE_POINT_CROSSOVER,
-        GeneticAlgorithm.TOURNAMENT,
-        [90000, 120000],
+        n_generations=10000,
+        stall_generations=5000,
+        population_size=pop_size,
+        chromosome_size=items,
+        values=values,
+        weights=weights,
+        capacity=capacity,
+        selection_method=GeneticAlgorithm.TOURNAMENT,
+        crossover_method=GeneticAlgorithm.ONE_POINT_CROSSOVER,
+        # init_pop_range = [99100, 120000],
+        # sort_values=True,
     )
     taken, value, optimal_found = ga.run()
 
