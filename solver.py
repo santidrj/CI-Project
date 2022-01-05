@@ -275,9 +275,11 @@ class GeneticAlgorithm:
                 )
                 self.population = np.concatenate((pop_1, pop_2))
             else:
+                # Select only non repeated individuals to ensure diversity is maintained in the population.
+                join_population = np.unique(np.concatenate((self.population, offspring)), axis=0)
                 self.population = elitism(
-                    np.concatenate((self.population, offspring)),
-                    np.concatenate((self.current_fitness, offspring_fitness)),
+                    join_population,
+                    self.fitness_value(join_population),
                     self.population_size,
                 )
             self.current_fitness = self.fitness_value(self.population)
@@ -351,16 +353,16 @@ def solve_it(input_data, file_location):
     pop_size = items ** 2
     ga = GeneticAlgorithm(
         n_generations=5000,
-        stall_generations=600,
+        stall_generations=1000,
         population_size=pop_size,
         chromosome_size=items,
         values=values,
         weights=weights,
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
-        crossover_method=GeneticAlgorithm.ONE_POINT_CROSSOVER,
-        # init_pop_range=[1, 2*pop_size],
-        # sort_values=True,
+        crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
+        init_pop_range=[1, 3*pop_size],
+        sort_values=True,
     )
     taken, value, optimal_found = ga.run()
 
