@@ -37,7 +37,7 @@ def elitism(population: np.ndarray, fitting_values: np.ndarray, keep: int):
 
 
 def tournament_selection(
-        k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
+    k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
 ):
     """
     Perform a tournament selection.
@@ -66,18 +66,18 @@ class GeneticAlgorithm:
     ELITISM = 1
 
     def __init__(
-            self,
-            n_generations,
-            stall_generations,
-            population_size,
-            chromosome_size,
-            values,
-            weights,
-            capacity,
-            selection_method,
-            crossover_method,
-            init_pop_range=None,
-            sort_values=False,
+        self,
+        n_generations,
+        stall_generations,
+        population_size,
+        chromosome_size,
+        values,
+        weights,
+        capacity,
+        selection_method,
+        crossover_method,
+        init_pop_range=None,
+        sort_values=False,
     ):
         self.n_generations = n_generations
         self.stall_generations = stall_generations
@@ -88,7 +88,9 @@ class GeneticAlgorithm:
         self.capacity = capacity
         self.selection_method = selection_method
         self.crossover_method = crossover_method
-        self.population = np.zeros((self.population_size, self.chromosome_size), dtype=np.int8)
+        self.population = np.zeros(
+            (self.population_size, self.chromosome_size), dtype=np.int8
+        )
         self.original_order = np.array([], dtype=int)
         self.rng = default_rng()
 
@@ -101,6 +103,11 @@ class GeneticAlgorithm:
             raise ValueError(
                 "The initial population range is lower than the population size."
             )
+
+        max_number = 2 ** self.chromosome_size - 1
+        if self.init_pop_range[0] > max_number or self.init_pop_range[1] > 2 ** self.chromosome_size - 1:
+            raise ValueError("The initial population range contains numbers not representable by the chromosome size.")
+
         self.init_population()
 
         if sort_values:
@@ -249,11 +256,17 @@ class GeneticAlgorithm:
 
             offspring = np.unique(offspring, axis=0)
             offspring_fitness = self.fitness_value(offspring)
-            if np.all(self.current_fitness == np.NINF) and np.all(offspring_fitness == np.NINF):
+            if np.all(self.current_fitness == np.NINF) and np.all(
+                offspring_fitness == np.NINF
+            ):
                 # If there are no individuals with good fitness,
                 # then we replace half of the previous generation with the new one.
-                pop_1 = self.rng.choice(self.population, self.population_size // 2, replace=False)
-                pop_2 = self.rng.choice(offspring, self.population_size // 2, replace=False)
+                pop_1 = self.rng.choice(
+                    self.population, self.population_size // 2, replace=False
+                )
+                pop_2 = self.rng.choice(
+                    offspring, self.population_size // 2, replace=False
+                )
                 self.population = np.concatenate((pop_1, pop_2))
             else:
                 self.population = elitism(
@@ -274,23 +287,34 @@ class GeneticAlgorithm:
                     optimal_found = 1
                 break
 
-        fittest_individual = np.argmax(self.current_fitness)
+        fittest_individual_idx = np.argmax(self.current_fitness)
+        fittest_individual = self.population[fittest_individual_idx]
+        best_fitness = self.current_fitness[fittest_individual_idx]
+
+        if best_fitness != np.NINF:
+            best_fitness = int(best_fitness)
 
         if self.original_order.size == 0:
             return (
-                self.population[fittest_individual],
-                int(self.current_fitness[fittest_individual]),
+                fittest_individual,
+                best_fitness,
                 optimal_found,
             )
         else:
             return (
-                self.population[fittest_individual][self.original_order],
-                int(self.current_fitness[fittest_individual]),
+                fittest_individual[self.original_order],
+                best_fitness,
                 optimal_found,
             )
 
 
-def solve_it(input_data):
+def read_best_value(file_name: str):
+    best_sol_file = f'best_sol{file_name.removeprefix("ninja")}'
+    with open(best_sol_file, "r") as f:
+        return int(float(f.readline().split()[0]))
+
+
+def solve_it(input_data, file_location):
     # Modify this code to run your optimization algorithm
 
     # parse the input
@@ -316,6 +340,7 @@ def solve_it(input_data):
     # values is a list containing the different values for the items
 
     # WRITE YOUR OWN CODE HERE #####################################
+    best_value = read_best_value(file_location[file_location.find('n'):])
 
     pop_size = items ** 2
     ga = GeneticAlgorithm(
@@ -327,19 +352,18 @@ def solve_it(input_data):
         weights=weights,
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
-        crossover_method=GeneticAlgorithm.ONE_POINT_CROSSOVER,
-        # init_pop_range=[1, 2 ** (items // 2) - 1],
+        crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
+        init_pop_range=[1, 2*pop_size],
         sort_values=True,
     )
     taken, value, optimal_found = ga.run()
 
     ## MAGIC ##
-    # TODO: Save all best values in files and read optimal solution to check if it is equal to the one found.
-    best_value = magic_d(weights, values, capacity)
+    # best_value = magic_d(weights, values, capacity)
 
     # value = 0
     # taken = items * [0]
-    #
+
     # value = magic_d(weights, values, capacity)
 
     # STOP WRITING YOUR CODE HERE ###################################
@@ -355,7 +379,7 @@ if __name__ == "__main__":
         inputDataFile = open(fileLocation, "r")
         inputData = "".join(inputDataFile.readlines())
         inputDataFile.close()
-        print(solve_it(inputData))
+        print(solve_it(inputData, fileLocation))
     else:
         print(
             "This test requires an input file.  Please select one from  data_ninjas (i.e. python solver.py ./data/ninjas_1_4)"
