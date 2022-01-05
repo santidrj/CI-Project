@@ -97,16 +97,21 @@ class GeneticAlgorithm:
         if init_pop_range is not None:
             self.init_pop_range = init_pop_range
         else:
-            self.init_pop_range = (0, 2 ** self.chromosome_size)
+            top = (
+                2 ** self.chromosome_size if 2**self.chromosome_size <= np.iinfo(np.uint).max else np.iinfo(np.uint).max
+            )
+            self.init_pop_range = (0, top)
 
         if (self.init_pop_range[1] - self.init_pop_range[0]) < self.population_size:
             raise ValueError(
                 "The initial population range is lower than the population size."
             )
 
-        max_number = 2 ** self.chromosome_size - 1
-        if self.init_pop_range[0] > max_number or self.init_pop_range[1] > 2 ** self.chromosome_size - 1:
-            raise ValueError("The initial population range contains numbers not representable by the chromosome size.")
+        max_number = 2 ** self.chromosome_size
+        if self.init_pop_range[0] > max_number or self.init_pop_range[1] > max_number:
+            raise ValueError(
+                "The initial population range contains numbers not representable by the chromosome size."
+            )
 
         self.init_population()
 
@@ -138,6 +143,7 @@ class GeneticAlgorithm:
                                 low=low_range,
                                 high=high_range,
                                 size=(self.population_size - len(pop)),
+                                dtype=np.uint,
                             )
                         ),
                     )
@@ -340,21 +346,21 @@ def solve_it(input_data, file_location):
     # values is a list containing the different values for the items
 
     # WRITE YOUR OWN CODE HERE #####################################
-    best_value = read_best_value(file_location[file_location.find('n'):])
+    best_value = read_best_value(file_location[file_location.find("n") :])
 
     pop_size = items ** 2
     ga = GeneticAlgorithm(
         n_generations=5000,
-        stall_generations=500,
+        stall_generations=600,
         population_size=pop_size,
         chromosome_size=items,
         values=values,
         weights=weights,
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
-        crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
-        init_pop_range=[1, 2*pop_size],
-        sort_values=True,
+        crossover_method=GeneticAlgorithm.ONE_POINT_CROSSOVER,
+        # init_pop_range=[1, 2*pop_size],
+        # sort_values=True,
     )
     taken, value, optimal_found = ga.run()
 
