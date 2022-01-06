@@ -56,8 +56,8 @@ def tournament_selection(
     return elitism(population_idx, selection_val, keep)
 
 
-def plot_figure(path, values):
-    plt.plot(values)
+def plot_figure(path, values, figsize=(20,20)):
+    plt.plot(values, figsize=figsize)
     plt.xlabel("epochs")
     plt.ylabel("fitness")
     plt.savefig(path)
