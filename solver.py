@@ -1,5 +1,7 @@
+import os
 import sys
 
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy.random import default_rng
 from tqdm import tqdm
@@ -54,6 +56,13 @@ def tournament_selection(
     return elitism(population_idx, selection_val, keep)
 
 
+def plot_figure(path, values):
+    plt.plot(values)
+    plt.xlabel("epochs")
+    plt.ylabel("fitness")
+    plt.savefig(path)
+
+
 class GeneticAlgorithm:
     # Options for crossover methods
     MUTATION_PROBABILITY = 0.5
@@ -78,6 +87,8 @@ class GeneticAlgorithm:
         crossover_method,
         init_pop_range=None,
         sort_values=False,
+        optimal_value=None,
+        fig_path=None,
     ):
         self.n_generations = n_generations
         self.stall_generations = stall_generations
@@ -88,6 +99,8 @@ class GeneticAlgorithm:
         self.capacity = capacity
         self.selection_method = selection_method
         self.crossover_method = crossover_method
+        self.optimal_value = optimal_value
+        self.fig_path = fig_path
         self.population = np.zeros(
             (self.population_size, self.chromosome_size), dtype=np.int8
         )
@@ -98,7 +111,9 @@ class GeneticAlgorithm:
             self.init_pop_range = init_pop_range
         else:
             top = (
-                2 ** self.chromosome_size if 2**self.chromosome_size <= np.iinfo(np.uint).max else np.iinfo(np.uint).max
+                2 ** self.chromosome_size
+                if 2 ** self.chromosome_size <= np.iinfo(np.uint).max
+                else np.iinfo(np.uint).max
             )
             self.init_pop_range = (0, top)
 
@@ -233,6 +248,7 @@ class GeneticAlgorithm:
         winner_fitness = np.NINF
         stall_generations = 0
         optimal_found = 0
+        fitness_evol = np.array([])
         for _ in tqdm(range(self.n_generations), leave=False):
             population_idx = np.arange(self.population_size)
             offspring = np.zeros(self.population.shape, dtype=np.int8)
@@ -276,7 +292,9 @@ class GeneticAlgorithm:
                 self.population = np.concatenate((pop_1, pop_2))
             else:
                 # Select only non repeated individuals to ensure diversity is maintained in the population.
-                join_population = np.unique(np.concatenate((self.population, offspring)), axis=0)
+                join_population = np.unique(
+                    np.concatenate((self.population, offspring)), axis=0
+                )
                 self.population = elitism(
                     join_population,
                     self.fitness_value(join_population),
@@ -290,8 +308,14 @@ class GeneticAlgorithm:
                 stall_generations = 0
                 winner_fitness = np.max(self.current_fitness)
 
+            fitness_evol = np.append(fitness_evol, winner_fitness)
+
+            if self.optimal_value is not None and self.optimal_value == winner_fitness:
+                optimal_found = 1
+                break
+
             if stall_generations >= self.stall_generations:
-                if winner_fitness != np.NINF:
+                if self.optimal_value is None and winner_fitness != np.NINF:
                     optimal_found = 1
                 break
 
@@ -301,6 +325,9 @@ class GeneticAlgorithm:
 
         if best_fitness != np.NINF:
             best_fitness = int(best_fitness)
+
+        if self.fig_path is not None:
+            plot_figure(self.fig_path, fitness_evol)
 
         if self.original_order.size == 0:
             return (
@@ -348,12 +375,13 @@ def solve_it(input_data, file_location):
     # values is a list containing the different values for the items
 
     # WRITE YOUR OWN CODE HERE #####################################
-    best_value = read_best_value(file_location[file_location.find("n") :])
+    file_name = file_location[file_location.find("n") :]
+    best_value = read_best_value(file_name)
 
     pop_size = items ** 2
     ga = GeneticAlgorithm(
         n_generations=5000,
-        stall_generations=1000,
+        stall_generations=500,
         population_size=pop_size,
         chromosome_size=items,
         values=values,
@@ -361,8 +389,10 @@ def solve_it(input_data, file_location):
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
         crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
-        init_pop_range=[1, 3*pop_size],
+        init_pop_range=[1, 3 * pop_size],
         sort_values=True,
+        optimal_value=best_value,
+        fig_path=os.path.join("figures", f"{file_name}.png"),
     )
     taken, value, optimal_found = ga.run()
 

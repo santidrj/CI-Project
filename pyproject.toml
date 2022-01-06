@@ -8,6 +8,7 @@ authors = ["Santiago del Rey Juárez <santiago.del.rey@estudiantat.upc.edu>"]
 python = ">=3.9,<3.11"
 numpy = "^1.21.5"
 tdqm = "^0.0.1"
+matplotlib = "^3.5.1"
 
 [tool.poetry.dev-dependencies]
 black = "^21.12b0"
