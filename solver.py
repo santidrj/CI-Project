@@ -1,6 +1,7 @@
 import os
 import sys
 
+import time
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.random import default_rng
@@ -56,7 +57,7 @@ def tournament_selection(
     return elitism(population_idx, selection_val, keep)
 
 
-def plot_figure(path, values, figsize=(10,10)):
+def plot_figure(path, values, figsize=(10, 10)):
     plt.figure(figsize=figsize)
     plt.plot(values)
     plt.xlabel("epochs")
@@ -346,8 +347,14 @@ class GeneticAlgorithm:
 
 def read_best_value(file_name: str):
     best_sol_file = f'best_sol{file_name.removeprefix("ninja")}'
-    with open(best_sol_file, "r") as f:
+    with open(os.path.join('best_solutions', best_sol_file), "r") as f:
         return int(float(f.readline().split()[0]))
+
+
+def save_comp_time(time, file_name: str):
+    with open(os.path.join("times", file_name), 'w') as file:
+        file.write(str(time))
+        file.close()
 
 
 def solve_it(input_data, file_location):
@@ -380,6 +387,7 @@ def solve_it(input_data, file_location):
     best_value = read_best_value(file_name)
 
     pop_size = items ** 2 if items ** 2 <= 10000 else 10000
+    sort = True
     ga = GeneticAlgorithm(
         n_generations=10000,
         stall_generations=2000,
@@ -390,12 +398,23 @@ def solve_it(input_data, file_location):
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
         crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
-        init_pop_range=[1, pop_size + 1],
-        sort_values=True,
+        init_pop_range=[1, pop_size * 2],
+        sort_values=sort,
         optimal_value=best_value,
         fig_path=os.path.join("figures", f"{file_name}.png"),
     )
+    start = time.time()
     taken, value, optimal_found = ga.run()
+    end = time.time() - start
+
+    if sort:
+        save_comp_time(
+            end, f'time_sorted_sol{file_name.removeprefix("ninja")}.txt'
+        )
+    else:
+        save_comp_time(
+            end, f'time_sol{file_name.removeprefix("ninja")}.txt'
+        )
 
     ## MAGIC ##
     # best_value = magic_d(weights, values, capacity)
