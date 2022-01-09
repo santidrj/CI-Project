@@ -352,7 +352,7 @@ def read_best_value(file_name: str):
 
 
 def save_comp_time(time, file_name: str):
-    with open(os.path.join("times", file_name), 'w') as file:
+    with open(os.path.join("times", file_name), 'a') as file:
         file.write(str(time))
         file.close()
 
@@ -386,7 +386,7 @@ def solve_it(input_data, file_location):
     file_name = file_location[file_location.find("n") :]
     best_value = read_best_value(file_name)
 
-    pop_size = items ** 2 if items ** 2 <= 10000 else 10000
+    pop_size = items ** 2 if items ** 2 <= 5000 else 5000
     sort = True
     ga = GeneticAlgorithm(
         n_generations=10000,
@@ -404,7 +404,7 @@ def solve_it(input_data, file_location):
         fig_path=os.path.join("figures", f"{file_name}.png"),
     )
     start = time.time()
-    taken, value, optimal_found = ga.run()
+    taken, value, _ = ga.run()
     end = time.time() - start
 
     if sort:
