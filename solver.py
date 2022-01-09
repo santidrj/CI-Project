@@ -386,7 +386,7 @@ def solve_it(input_data, file_location):
     file_name = file_location[file_location.find("n") :]
     best_value = read_best_value(file_name)
 
-    pop_size = items ** 2 if items ** 2 <= 5000 else 5000
+    pop_size = items ** 2 if items ** 2 <= 10000 else 10000
     sort = True
     ga = GeneticAlgorithm(
         n_generations=10000,
@@ -398,7 +398,7 @@ def solve_it(input_data, file_location):
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
         crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
-        init_pop_range=[1, pop_size * 2],
+        init_pop_range=[1, pop_size * 3],
         sort_values=sort,
         optimal_value=best_value,
         fig_path=os.path.join("figures", f"{file_name}.png"),
