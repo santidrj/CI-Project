@@ -40,7 +40,7 @@ def elitism(population: np.ndarray, fitting_values: np.ndarray, keep: int):
 
 
 def tournament_selection(
-    k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
+        k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
 ):
     """
     Perform a tournament selection.
@@ -77,20 +77,20 @@ class GeneticAlgorithm:
     ELITISM = 1
 
     def __init__(
-        self,
-        n_generations,
-        stall_generations,
-        population_size,
-        chromosome_size,
-        values,
-        weights,
-        capacity,
-        selection_method,
-        crossover_method,
-        init_pop_range=None,
-        sort_values=False,
-        optimal_value=None,
-        fig_path=None,
+            self,
+            n_generations,
+            stall_generations,
+            population_size,
+            chromosome_size,
+            values,
+            weights,
+            capacity,
+            selection_method,
+            crossover_method,
+            init_pop_range=None,
+            sort_values=False,
+            optimal_value=None,
+            fig_path=None,
     ):
         self.n_generations = n_generations
         self.stall_generations = stall_generations
@@ -281,7 +281,7 @@ class GeneticAlgorithm:
             offspring = np.unique(offspring, axis=0)
             offspring_fitness = self.fitness_value(offspring)
             if np.all(self.current_fitness == np.NINF) and np.all(
-                offspring_fitness == np.NINF
+                    offspring_fitness == np.NINF
             ):
                 # If there are no individuals with good fitness,
                 # then we replace half of the previous generation with the new one.
@@ -351,9 +351,13 @@ def read_best_value(file_name: str):
         return int(float(f.readline().split()[0]))
 
 
-def save_comp_time(time, file_name: str):
-    with open(os.path.join("times", file_name), 'a') as file:
-        file.write(str(time) + "\n")
+def save_comp_time(computation_time, selection_method, crossover_method, file_name: str):
+    with open(os.path.join("times", file_name), "a") as file:
+        file.write(
+            f"\nSelection method: {'tournament' if selection_method == GeneticAlgorithm.TOURNAMENT else 'elitism'}, "
+            f"Crossover method: "
+            f"{'two-point' if crossover_method == GeneticAlgorithm.TWO_POINT_CROSSOVER else 'one-point'}\n")
+        file.write(f"Time (s): {computation_time}\n")
         file.close()
 
 
@@ -383,7 +387,7 @@ def solve_it(input_data, file_location):
     # values is a list containing the different values for the items
 
     # WRITE YOUR OWN CODE HERE #####################################
-    file_name = file_location[file_location.find("n") :]
+    file_name = file_location[file_location.find("n"):]
     best_value = read_best_value(file_name)
 
     pop_size = items ** 2 if items ** 2 <= 5000 else 5000
@@ -409,7 +413,7 @@ def solve_it(input_data, file_location):
 
     if sort:
         save_comp_time(
-            end, f'time_sorted_sol{file_name.removeprefix("ninja")}.txt'
+            end, ga.selection_method, ga.crossover_method, f'time_sorted_sol{file_name.removeprefix("ninja")}.txt'
         )
     else:
         save_comp_time(
