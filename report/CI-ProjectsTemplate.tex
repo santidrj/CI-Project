@@ -25,11 +25,13 @@
 
 
  % Authors with different addresses:
- \author{\Name{Author Name1} \Email{abc@myemailaddress.com}\\
- \addr Academic address (optional)
+ \author{\Name{Cristian Andres Camargo Giraldo} \Email{cristian.andres.camargo@estudiantat.upc.edu}\\
  \AND
- \Name{Author Name2} \Email{xyz@myemailaddress.com}\\
- \addr Academic address (optional)
+ \Name{Rodrigo Pablo Carranza Astrada} \Email{rodrigo.pablo.carranza@estudiantat.upc.edu}\\
+ \AND
+\Name{Santiago del Rey Juárez} \Email{santiago.del.rey@estudiantat.upc.edu}\\
+ \AND
+ \Name{Yazmina Zurita Martel} \Email{yazmina.zurita@estudiantat.upc.edu}\\
  }
 
 \begin{document}
@@ -47,12 +49,21 @@ List of keywords
 
 \section{Problem statement and goals}
 
-This is where the content of your paper starts. Remember:
-\begin{itemize}
-\item Limit the main text (without bibliography and appendices) to 10 pages.
-\item Include, either in the main text or the appendices, enough details to convince the lecturers of the project's merits.
-\item You should cite or give credit to all material that is not yours (including pictures, books, web pages, code, ...)
-\end{itemize}
+One of the most popular problems studied in constrained combinatorial optimization is the knapsack problem. Given a finite set of objects with associated weights and values, the objective is to maximize the value of a collection formed by these items without exceeding a predefined weight limit.
+
+The knapsack problem has diverse practical applications which makes it particularly interesting. For example, it has been applied to production and inventory management \cite{ziegler1982solving}, financial models \cite{mathur1983branch} and queueing operations in computer systems \cite{gerla1977topological} or manufacturing \cite{bitran1989tradeoff}.
+
+There are several variations to the knapsack problem. We could consider there are multiple copies of each item or take into consideration their volume in addition to their weight. However, we will focus on the simplest case, the one dimensional 0-1 knapsack problem, where the only constraint is the weight and the number of copies of each item is limited to 1.
+
+Although the premise might look simple on the surface, this is actually an NP-hard problem. Thus, there is no known algorithm that achieves optimal solutions in polynomial time for all cases of this problem. Still, a sufficiently good solution can be found quickly by resorting to heuristics methods. The one that we will explore is an effective and commonly used metaheuristic known as genetic algorithm.
+
+Genetic algorithms (GAs) belong to the family of techniques known as evolutionary algorithms. They draw inspiration from natural selection and genetic processes to provide solutions to complex optimization problems and model evolutionary systems. 
+
+The main process can be described as an evolutionary cycle. They first initialise a population of chromosomes, which represent candidate solutions. Some of these individuals will be drawn from the population by means of a selection mechanism and compared according to their fitness. In the reproduction phase, the genetic material of the best individuals will be combined to form offspring. Also, some values of the offspring’s chromosomes will be mutated. Finally, a replacement strategy is set to generate the next generation population. This process is repeated for a number of generations or until some convergence criterion is met.
+
+A solution to the knapsack problem can be represented as a sequence of binary values $\{p_1, p_2, ..., p_m\}$, where $m$ is the number of objects. A value $p_i = 1$ would mean that the solution contains the object $p_i$ and $p_i = 0$ that it does not. We will apply GAs to eighteen different cases, each of them specified by a file containing the number of objects $m$ and the capacity $K$ of a knapsack in the first line and the value $v_i$ and weight $w_i$ of each object $p_i$ in subsequent lines. \\
+
+The goal of this project is to find the optimal solution to each of the eighteen knapsack problems proposed by applying GAs. To this end, we will have to choose and implement suitable mechanisms in each of the phases of the evolutionary cycle. The description of these methods, as well as the reasons for their election, are detailed in section  [THE CI METHODS].
 
 \section{Previous work}
 
@@ -76,7 +87,7 @@ The conclusions are not a mere repetition of the abstract. Basically, you should
 
 \section*{References}
 
-\bibliography{yourbibfile}
+\bibliography{references.bib}
 
 
 \appendix
