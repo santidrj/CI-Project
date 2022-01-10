@@ -353,7 +353,7 @@ def read_best_value(file_name: str):
 
 def save_comp_time(time, file_name: str):
     with open(os.path.join("times", file_name), 'a') as file:
-        file.write(str(time))
+        file.write(str(time) + "\n")
         file.close()
 
 
@@ -386,11 +386,11 @@ def solve_it(input_data, file_location):
     file_name = file_location[file_location.find("n") :]
     best_value = read_best_value(file_name)
 
-    pop_size = items ** 2 if items ** 2 <= 10000 else 10000
+    pop_size = items ** 2 if items ** 2 <= 2000 else 2000
     sort = True
     ga = GeneticAlgorithm(
         n_generations=10000,
-        stall_generations=2000,
+        stall_generations=5000,
         population_size=pop_size,
         chromosome_size=items,
         values=values,
@@ -398,7 +398,7 @@ def solve_it(input_data, file_location):
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
         crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
-        init_pop_range=[1, pop_size * 3],
+        init_pop_range=[1, pop_size * 2],
         sort_values=sort,
         optimal_value=best_value,
         fig_path=os.path.join("figures", f"{file_name}.png"),
