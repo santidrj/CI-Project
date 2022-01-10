@@ -351,12 +351,12 @@ def read_best_value(file_name: str):
         return int(float(f.readline().split()[0]))
 
 
-def save_comp_time(computation_time, selection_method, crossover_method, file_name: str):
+def save_comp_time(computation_time, selection_method, crossover_method, sorted, file_name: str):
     with open(os.path.join("times", file_name), "a") as file:
         file.write(
             f"\nSelection method: {'tournament' if selection_method == GeneticAlgorithm.TOURNAMENT else 'elitism'}, "
             f"Crossover method: "
-            f"{'two-point' if crossover_method == GeneticAlgorithm.TWO_POINT_CROSSOVER else 'one-point'}\n")
+            f"{'two-point' if crossover_method == GeneticAlgorithm.TWO_POINT_CROSSOVER else 'one-point'}, Sorted: {sorted}\n")
         file.write(f"Time (s): {computation_time}\n")
         file.close()
 
@@ -411,15 +411,7 @@ def solve_it(input_data, file_location):
     taken, value, _ = ga.run()
     end = time.time() - start
 
-    if sort:
-        save_comp_time(
-            end, ga.selection_method, ga.crossover_method, f'time_sorted_sol{file_name.removeprefix("ninja")}.txt'
-        )
-    else:
-        save_comp_time(
-            end, f'time_sol{file_name.removeprefix("ninja")}.txt'
-        )
-
+    save_comp_time(end, ga.selection_method, ga.crossover_method, sort, f'time_sol{file_name.removeprefix("ninja")}.txt')
     ## MAGIC ##
     # best_value = magic_d(weights, values, capacity)
 
