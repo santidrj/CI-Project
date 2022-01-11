@@ -390,11 +390,11 @@ def solve_it(input_data, file_location):
     file_name = file_location[file_location.find("n"):]
     best_value = read_best_value(file_name)
 
-    pop_size = items ** 2 if items ** 2 <= 5000 else 5000
+    pop_size = items ** 2 if items ** 2 <= 2000 else 2000
     sort = True
     ga = GeneticAlgorithm(
         n_generations=10000,
-        stall_generations=3000,
+        stall_generations=600,
         population_size=pop_size,
         chromosome_size=items,
         values=values,
