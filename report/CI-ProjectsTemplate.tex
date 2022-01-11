@@ -3,7 +3,7 @@
 % The following packages will be automatically loaded:
 % amsmath, amssymb, natbib, graphicx, url, algorithm2e
 
-\title[My CI Project]{My beautiful CI Project}
+\title[Ninjas’ Revenge]{Ninjas’ Revenge: the secret genetic technique}
 
  % Use \Name{Author Name} to specify the name.
  % If the surname contains spaces, enclose the surname
@@ -61,17 +61,42 @@ Genetic algorithms (GAs) belong to the family of techniques known as evolutionar
 
 The main process can be described as an evolutionary cycle. They first initialise a population of chromosomes, which represent candidate solutions. Some of these individuals will be drawn from the population by means of a selection mechanism and compared according to their fitness. In the reproduction phase, the genetic material of the best individuals will be combined to form offspring. Also, some values of the offspring’s chromosomes will be mutated. Finally, a replacement strategy is set to generate the next generation population. This process is repeated for a number of generations or until some convergence criterion is met.
 
-A solution to the knapsack problem can be represented as a sequence of binary values $\{p_1, p_2, ..., p_m\}$, where $m$ is the number of objects. A value $p_i = 1$ would mean that the solution contains the object $p_i$ and $p_i = 0$ that it does not. We will apply GAs to eighteen different cases, each of them specified by a file containing the number of objects $m$ and the capacity $K$ of a knapsack in the first line and the value $v_i$ and weight $w_i$ of each object $p_i$ in subsequent lines. \\
+A solution to the knapsack problem can be represented as a sequence of binary values $\{p_1, p_2, ..., p_m\}$, where $m$ is the number of objects. A value $p_i = 1$ would mean that the solution contains the object $p_i$ and $p_i = 0$ that it does not. We will apply GAs to eighteen different cases, each of them specified by a file containing the number of objects $m$ and the capacity $K$ of a knapsack in the first line and the value $v_i$ and weight $w_i$ of each object $p_i$ in subsequent lines.
 
-The goal of this project is to find the optimal solution to each of the eighteen knapsack problems proposed by applying GAs. To this end, we will have to choose and implement suitable mechanisms in each of the phases of the evolutionary cycle. The description of these methods, as well as the reasons for their election, are detailed in section  [THE CI METHODS].
+The goal of this project is to find the optimal solution to each of the eighteen knapsack problems proposed by applying GAs. To this end, we will have to choose and implement suitable mechanisms in each of the phases of the evolutionary cycle. The description of these methods, as well as the reasons for their election, are detailed in Section~\ref{sec:ci-methods}.
 
 \section{Previous work}
 
 This is a very important part, because it puts your work in context.
 
-\section{The CI methods}
+\section{The CI methods}\label{sec:ci-methods}
 
-Do not repeat well-known theory or formulas. Just mention which methods you use and why you choose them, and provide relevant citations.
+When applying genetic algorithms to a problem, there are several aspects to consider, each one with its own methods. In this section, we define the different methods used in our implementation for each one of these aspects.
+
+\subsection{Population initialization}
+For the initialization of the population, we have used a random initialization approach, which has been traditionally used in GAs for its simplicity and efficiency. However, we introduced an initialization range parameter in order to give the algorithm better chances of finding the optimal solution in case we know where this solution should be. This initialization range in conjunction with the possibility of sorting the input items by their value/weight rate can highly improve the algorithm performance.
+
+\subsection{Fitness function and selection}
+To be able to assess how well an individual (i.e. possible solution) fits our objective we must first define the fitness function. For our particular problem, we defined the following fitness function:
+
+\begin{align*}
+F(x) & =\begin{cases}
+-\infty & if\:x\bullet w>c\\
+x\bullet v & otherwise
+\end{cases}
+\end{align*}
+
+\noindent, where $x$ is the bitstring representing the individual, $w$ is the list of item weights, $v$ is the list of item values and $c$ is the knapsack capacity.
+
+Once we have the fitness function we are able to proceed to the selection step. We decided to implement the tournament and elitism selection methods for our algorithm. Particularly, we use a fixed value of $k=2$ for both tournament and elitism. We decided to use tournament selection instead of other methods such as standard roulette wheel or rank selection because of its simplicity and because seems to outperform the other approaches~\cite{razali2011genetic}. On the other hand, elitism was implemented because of its usage in the tournament selection method.
+
+\subsection{Crossover and mutation}
+Several crossover techniques can be applied in GAs such as one-point, 2-point, multi-point (with more than two cut points) and uniform crossovers. In this work, we have implemented the one-point, 2-point and uniform crossovers. The reason behind this choice is the simplicity of these techniques and their good performance, especially the 2-point crossover~\cite{HASANCEBI2000435, dejonganalysis, adeli1993integrated}.
+
+For the mutation step, we implemented a simple bit-flip where a random number of genes between 1 and the size of the chromosome are flipped. In addition, we set the mutation probability to 0.5 since lower values made the algorithm get stuck in local minimums more frequently.
+
+\subsection{Replacement strategy}
+The final step of the GA is the replacement strategy used to obtain the new generation. In our case, we used elitism to replace the worst individuals of the current population. With this strategy, in some cases could happen that the old generation is entirely replaced. In addition to the elitism, we also decided to remove repeated individuals before applying the replacement. This decision was made to ensure that the diversity of the population is maintained. Additionally, we defined an extra case that does not use elitism. This is when there is no good solution (i.e. the fitness value is $-\infty$) neither in the parents nor the offspring. In this case, we decided to obtain the new generation by selecting, randomly, half of the individuals from $\mu$ and the other half from $\lambda$.
 
 \section{Results and Discussion}
 
