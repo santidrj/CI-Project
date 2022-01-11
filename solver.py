@@ -40,7 +40,7 @@ def elitism(population: np.ndarray, fitting_values: np.ndarray, keep: int):
 
 
 def tournament_selection(
-        k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
+    k: int, population_idx: np.ndarray, fitting_values: np.ndarray, keep: int
 ):
     """
     Perform a tournament selection.
@@ -77,20 +77,20 @@ class GeneticAlgorithm:
     ELITISM = 1
 
     def __init__(
-            self,
-            n_generations,
-            stall_generations,
-            population_size,
-            chromosome_size,
-            values,
-            weights,
-            capacity,
-            selection_method,
-            crossover_method,
-            init_pop_range=None,
-            sort_values=False,
-            optimal_value=None,
-            fig_path=None,
+        self,
+        n_generations,
+        stall_generations,
+        population_size,
+        chromosome_size,
+        values,
+        weights,
+        capacity,
+        selection_method,
+        crossover_method,
+        init_pop_range=None,
+        sort_values=False,
+        optimal_value=None,
+        fig_path=None,
     ):
         self.n_generations = n_generations
         self.stall_generations = stall_generations
@@ -186,7 +186,11 @@ class GeneticAlgorithm:
 
     def mutate(self, individual):
         if self.rng.random() < self.MUTATION_PROBABILITY:
-            gene = self.rng.choice(range(self.chromosome_size), size=self.rng.integers(1, self.chromosome_size), replace=False)
+            gene = self.rng.choice(
+                range(self.chromosome_size),
+                size=self.rng.integers(1, self.chromosome_size),
+                replace=False,
+            )
             individual[gene] = 1 - individual[gene]
 
     def one_point_crossover(self, parent1, parent2):
@@ -281,7 +285,7 @@ class GeneticAlgorithm:
             offspring = np.unique(offspring, axis=0)
             offspring_fitness = self.fitness_value(offspring)
             if np.all(self.current_fitness == np.NINF) and np.all(
-                    offspring_fitness == np.NINF
+                offspring_fitness == np.NINF
             ):
                 # If there are no individuals with good fitness,
                 # then we replace half of the previous generation with the new one.
@@ -347,16 +351,25 @@ class GeneticAlgorithm:
 
 def read_best_value(file_name: str):
     best_sol_file = f'best_sol{file_name.removeprefix("ninja")}'
-    with open(os.path.join('best_solutions', best_sol_file), "r") as f:
+    with open(os.path.join("best_solutions", best_sol_file), "r") as f:
         return int(float(f.readline().split()[0]))
 
 
-def save_comp_time(computation_time, selection_method, crossover_method, sorted, file_name: str):
+def save_comp_time(
+    computation_time,
+    selection_method,
+    crossover_method,
+    sorted,
+    isOptimal,
+    file_name: str,
+):
     with open(os.path.join("times", file_name), "a") as file:
         file.write(
             f"\nSelection method: {'tournament' if selection_method == GeneticAlgorithm.TOURNAMENT else 'elitism'}, "
             f"Crossover method: "
-            f"{'two-point' if crossover_method == GeneticAlgorithm.TWO_POINT_CROSSOVER else 'one-point'}, Sorted: {sorted}\n")
+            f"{'two-point' if crossover_method == GeneticAlgorithm.TWO_POINT_CROSSOVER else 'one-point'}, Sorted: {sorted}\n"
+        )
+        file.write(f"Optimal found: {'yes' if isOptimal else 'no'}\n")
         file.write(f"Time (s): {computation_time}\n")
         file.close()
 
@@ -387,7 +400,7 @@ def solve_it(input_data, file_location):
     # values is a list containing the different values for the items
 
     # WRITE YOUR OWN CODE HERE #####################################
-    file_name = file_location[file_location.find("n"):]
+    file_name = file_location[file_location.find("n") :]
     best_value = read_best_value(file_name)
 
     pop_size = items ** 2 if items ** 2 <= 2000 else 2000
@@ -405,13 +418,20 @@ def solve_it(input_data, file_location):
         init_pop_range=[1, pop_size * 3],
         sort_values=sort,
         optimal_value=best_value,
-        fig_path=os.path.join("figures", f"{file_name}.png"),
+        # fig_path=os.path.join("figures", f"{file_name}.png"),
     )
     start = time.time()
     taken, value, _ = ga.run()
     end = time.time() - start
 
-    save_comp_time(end, ga.selection_method, ga.crossover_method, sort, f'time_sol{file_name.removeprefix("ninja")}.txt')
+    save_comp_time(
+        end,
+        ga.selection_method,
+        ga.crossover_method,
+        sort,
+        value == best_value,
+        f'time_sol{file_name.removeprefix("ninja")}.txt',
+    )
     ## MAGIC ##
     # best_value = magic_d(weights, values, capacity)
 
