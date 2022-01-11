@@ -1,4 +1,9 @@
-25.235448598861694
+Selection method: tournament, Crossover method: two-point, Sorted: False
+Time (s): 25.235448598861694
+
+Selection method: tournament, Crossover method: two-point, Sorted: True
+0.2605462074279785
+
 Selection method: tournament, Crossover method: two-point, Sorted: True
 Time (s): 1.513753890991211
 
