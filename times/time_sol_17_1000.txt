@@ -1,1 +1,15 @@
-6397.56934928894
+Selection method: tournament, Crossover method: two-point, Sorted: False
+Optimal found: no
+Time (s): 615.2737860679626
+
+Selection method: tournament, Crossover method: two-point, Sorted: False
+Optimal found: no
+Time (s): 783.0440165996552
+
+Selection method: tournament, Crossover method: two-point, Sorted: True
+Optimal found: no
+Time (s): 602.4628436565399
+
+Selection method: tournament, Crossover method: two-point, Sorted: True
+Optimal found: no
+Time (s): 684.8534309864044
