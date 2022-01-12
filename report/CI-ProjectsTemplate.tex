@@ -2,6 +2,8 @@
 
 % The following packages will be automatically loaded:
 % amsmath, amssymb, natbib, graphicx, url, algorithm2e
+\usepackage{adjustbox}
+\usepackage{makecell}
 
 \title[Ninjas’ Revenge]{Ninjas’ Revenge: the secret genetic technique}
 
@@ -25,13 +27,13 @@
 
 
  % Authors with different addresses:
- \author{\Name{Cristian Andres Camargo Giraldo} \Email{cristian.andres.camargo@estudiantat.upc.edu}\\
+ \author{\Name{Cristian Andres {Camargo Giraldo}} \Email{cristian.andres.camargo@estudiantat.upc.edu}\\
  \AND
- \Name{Rodrigo Pablo Carranza Astrada} \Email{rodrigo.pablo.carranza@estudiantat.upc.edu}\\
+ \Name{Rodrigo Pablo {Carranza Astrada}} \Email{rodrigo.pablo.carranza@estudiantat.upc.edu}\\
  \AND
-\Name{Santiago del Rey Juárez} \Email{santiago.del.rey@estudiantat.upc.edu}\\
+\Name{Santiago {del Rey Juárez}} \Email{santiago.del.rey@estudiantat.upc.edu}\\
  \AND
- \Name{Yazmina Zurita Martel} \Email{yazmina.zurita@estudiantat.upc.edu}\\
+ \Name{Yazmina {Zurita Martel}} \Email{yazmina.zurita@estudiantat.upc.edu}\\
  }
 
 \begin{document}
@@ -43,7 +45,7 @@ This is a great project and therefore it has a concise abstract.
 \end{abstract}
 
 \begin{keywords}
-List of keywords
+Knapsack problem, Genetic Algorithms
 \end{keywords}
 
 
@@ -61,7 +63,28 @@ Genetic algorithms (GAs) belong to the family of techniques known as evolutionar
 
 The main process can be described as an evolutionary cycle. They first initialise a population of chromosomes, which represent candidate solutions. Some of these individuals will be drawn from the population by means of a selection mechanism and compared according to their fitness. In the reproduction phase, the genetic material of the best individuals will be combined to form offspring. Also, some values of the offspring’s chromosomes will be mutated. Finally, a replacement strategy is set to generate the next generation population. This process is repeated for a number of generations or until some convergence criterion is met.
 
-A solution to the knapsack problem can be represented as a sequence of binary values $\{p_1, p_2, ..., p_m\}$, where $m$ is the number of objects. A value $p_i = 1$ would mean that the solution contains the object $p_i$ and $p_i = 0$ that it does not. We will apply GAs to eighteen different cases, each of them specified by a file containing the number of objects $m$ and the capacity $K$ of a knapsack in the first line and the value $v_i$ and weight $w_i$ of each object $p_i$ in subsequent lines.
+We can describe formally the 0-1 knapsack problem as follows: given a set of $n$ items and a $knapsack$ with
+\begin{center}
+    $p_j = $ profit of item $j$, \\
+    $w_j = $ weight of item $j$ \\
+    $c = $ capacity of the knapsack, \\
+\end{center}
+select a subset of items so as to \\
+\begin{center}
+    maximize $z = \displaystyle \sum_{j=1}^n p_j x_j$ \\
+    subject to $\displaystyle \sum_{j=1}^n w_j x_j < c,$ \\
+\end{center}
+where
+$$x_j =     
+    \begin{cases}
+      1 & \text{if item $j$ is selected;}\\
+      0 & \text{otherwise}
+    \end{cases}, \hspace{1cm}
+j \in N = \{1,..., n\}
+$$
+
+
+A solution to the knapsack problem can be represented as a sequence of binary values $[x_1, x_2, ..., x_n]$. We will apply GAs to eighteen different cases, each of them specified by a file containing a value for $n$ and $c$ in the first line and values for $p_j$ and $w_j$ in subsequent lines for each object $x_j$. \\
 
 The goal of this project is to find the optimal solution to each of the eighteen knapsack problems proposed by applying GAs. To this end, we will have to choose and implement suitable mechanisms in each of the phases of the evolutionary cycle. The description of these methods, as well as the reasons for their election, are detailed in Section~\ref{sec:ci-methods}.
 
@@ -70,7 +93,6 @@ The goal of this project is to find the optimal solution to each of the eighteen
 This is a very important part, because it puts your work in context.
 
 \section{The CI methods}\label{sec:ci-methods}
-
 When applying genetic algorithms to a problem, there are several aspects to consider, each one with its own methods. In this section, we define the different methods used in our implementation for each one of these aspects.
 
 \subsection{Population initialization}
@@ -100,26 +122,83 @@ The final step of the GA is the replacement strategy used to obtain the new gene
 
 \section{Results and Discussion}
 
-The main part of the document.
+% Preview source code for paragraph 0
 
-\section{Strengths and weaknesses}
+\begin{table}[!htbp]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline 
+Sol & \#items & Best value & \makecell{Best value\\found} & \makecell{Time\\without sort (s)} & Best found & \makecell{Time\\with sort (s)} & Best found\\
+\hline 
+1 & 4 & 19  & 19  & 0.0378 & 4/4 & 0.0375 & 4/4\\
+\hline 
+2 & 19 & 12248 & 12248 & 2.445 & 4/4 & 0.430 & 4/4\\
+\hline 
+3 & 30 & 99798  & 99798  & 34.501 & 0/3 & 24.437 & 2/3\\
+\hline 
+4 & 40 & 99924  & 99924  & 4.382 & 3/3 & 0.674 & 3/3\\
+\hline 
+5 & 45 & 23974  & 23974  & 117.021 & 1/3 & 2.102 & 3/3\\
+\hline 
+6 & 50 & 142156  & 142156  & 247.373 & 0/3 & 76.890 & 1/3\\
+\hline 
+7 & 50 & 5345  & 5345  & 73.624 & 3/3 & 18.885 & 3/3\\
+\hline 
+8 & 60 & 99837  & 99837  & 12.803 & 3/3 & 34.425 & 3/3\\
+\hline 
+9 & 100 & 99837  & 99837  & 94.960 & 0/3 & 109.723 & 1/3\\
+\hline 
+10 & 100 & 1333930  & 1333930  & 321.234 & 0/2 & 23.198 & 2/2\\
+\hline 
+11 & 100 & 10892  & 10892  & 322.24 & 1/2 & 128.105 & 1/2\\
+\hline 
+12 & 200 & 100236  & 100236  & 49.784 & 2/2 & 24.183 & 2/2\\
+\hline 
+13 & 200 & 1103604  & 1103604  & 632.185 & 0/2 & 512.575 & 1/2\\
+\hline 
+14 & 300 & 1688692  & 1688692  & 417.575 & 0/2 & 196.617 & 1/2\\
+\hline 
+15 & 400 & 3967180  & 3967180  & 216.064 & 0/2 & 258.675 & 1/2\\
+\hline 
+16 & 500 & 54939  & 54939  & 614.917 & 0/2 & 191.009 & 1/2\\
+\hline 
+17 & 1000 & 109899 & 109894 &  &  &  & \\
+\hline 
+18 & 10000 & 1099893 & 1099132 &  &  &  & \\
+\hline 
+\end{tabular}
+\par\end{adjustbox}
+\caption{Results for each problem file.}
+\label{tab:results}
 
-Be critic with your work ...
+\end{table}
+
+
+
+\section{Strengths and weaknesses} \label{sec:strengths}
+
+After seeing the results obtained from our GA implementation we have detected some strengths and weaknesses in it.
+
+Starting with its strengths, we have seen how the algorithm can find the optimal solution in a reasonable amount of time in most cases. This is a very good result since we usually would expect to obtain sub-optimal results. Also, we noticed that the algorithm is able to find multiple optimal solutions for some of the problems. Being able to find several optimal solutions to one problem opens the possibility to introducing new factors when deciding which one best suits us. This can be considered a strength compared to the standard exhaustive search algorithm since the latter is only able to find one possible solution. Another strong point of our solution is its simplicity since it does not require complex functions or procedures to achieve good results. We consider that this makes the algorithm easy to understand and extensible to other problems that can be represented as bitstrings.
+
+Following with its weaknesses, we have seen how the algorithm struggles when the size of the problem increases dramatically (e.g. 1000 or 10000 items). In these cases, we observed how the exhaustive search outperformed our algorithm in terms of solution quality and time complexity since it could find the optimal solution in less time. Also, for some problems, we observed how successive executions performed considerably different when looking at the execution time and the solution obtained. From this, we infer that the GA is highly dependent on the initialization of the initial population.
 
 \section{Conclusions and future work}
 
-The conclusions are not a mere repetition of the abstract. Basically, you should describe ``what you know now that you did \emph{not} before doing the work''. In addition, mention what would be natural follow-up lines of work.
+The genetic algorithm implemented has proven to be a good heuristic for generating approximate solutions of the unidimensional 0-1 knapsack problem. The results achieved were optimal or near-optimal in the eighteen scenarios studied despite the imposition of stopping criteria. 
 
-\section*{References}
+We noted how the performance of the system improves drastically when the data is preprocessed in a suitable way. Having a good understanding of the problem representation and the internal mechanisms in a GA is essential for this preliminary step.
+
+Another aspect that determines the performance of the system is, of course, the strategies implemented in each phase of the evolutionary cycle. We counted with several methods to choose from at each step which makes these systems very flexible and adaptable. This along with a proper selection of parameters allowed us to tailor the algorithm to the problem.
+
+There are ways to further optimize the developed method. As we mentioned earlier, GAs are highly sensitive to the population seeding technique. The random initialization of the population can generate individuals with poor fitness, which increases the time needed to achieve optimality. Instead, we could resort to better seeding techniques such as Sorted Population ~\cite{yugay2008hybrid}, which creates a large initial population, sorts it in ascending order according to their fitness and chooses a percentage of individuals that have above average fitness. This and other initialization techniques like Nearest Neighbour or Gene Bank are described and compared in \cite{hassanat2018improved}.
+
+As we have seen in Section~\ref{sec:strengths}, one of the main weaknesses of our algorithm is that its execution time increases dramatically with the problem size. One way to slightly improve this issue could be to parallelize the reproduction process. In this way, we could randomly split the population into multiple batches and then perform the reproduction step simultaneously for each batch. With this, we only would need to wait for the slowest batch to finish and then join all the resulting offspring together to perform the replacement step.
+
+
+\clearpage
 
 \bibliography{references.bib}
-
-
-\appendix
-
-\section{Proof of theoretical results} (if applicable)
-
-\section{Implementation details} (if applicable)
-
 
 \end{document}
