@@ -21,3 +21,19 @@ Time (s): 133.64086079597473
 Selection method: tournament, Crossover method: two-point, Sorted: True
 Optimal found: no
 Time (s): 150.87908220291138
+
+Selection method: tournament, Crossover method: one-point, Sorted: True
+Optimal found: no
+Time (s): 147.6761565208435
+
+Selection method: tournament, Crossover method: one-point, Sorted: True
+Optimal found: no
+Time (s): 133.59644198417664
+
+Selection method: tournament, Crossover method: uniform, Sorted: True
+Optimal found: yes
+Time (s): 71.8275797367096
+
+Selection method: tournament, Crossover method: uniform, Sorted: True
+Optimal found: yes
+Time (s): 25.4338161945343

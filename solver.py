@@ -218,7 +218,7 @@ class GeneticAlgorithm:
         offspring1 = parent1.copy()
         offspring2 = parent2.copy()
         seed = self.rng.random(self.chromosome_size)
-        for s, i in enumerate(seed):
+        for i, s in enumerate(seed):
             if s < 0.5:
                 offspring1[i] = parent2[i]
                 offspring2[i] = parent1[i]
@@ -363,11 +363,17 @@ def save_comp_time(
     isOptimal,
     file_name: str,
 ):
+    if crossover_method == GeneticAlgorithm.TWO_POINT_CROSSOVER:
+        crossover = 'two-point'
+    elif crossover_method == GeneticAlgorithm.UNIFORM_CROSSOVER:
+        crossover = 'uniform'
+    else:
+        crossover = 'one-point'
     with open(os.path.join("times", file_name), "a") as file:
         file.write(
             f"\nSelection method: {'tournament' if selection_method == GeneticAlgorithm.TOURNAMENT else 'elitism'}, "
             f"Crossover method: "
-            f"{'two-point' if crossover_method == GeneticAlgorithm.TWO_POINT_CROSSOVER else 'one-point'}, Sorted: {sorted}\n"
+            f"{crossover}, Sorted: {sorted}\n"
         )
         file.write(f"Optimal found: {'yes' if isOptimal else 'no'}\n")
         file.write(f"Time (s): {computation_time}\n")
@@ -414,7 +420,7 @@ def solve_it(input_data, file_location):
         weights=weights,
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
-        crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
+        crossover_method=GeneticAlgorithm.UNIFORM_CROSSOVER,
         init_pop_range=[1, pop_size * 3],
         sort_values=sort,
         optimal_value=best_value,
