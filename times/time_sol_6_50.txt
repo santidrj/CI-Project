@@ -30,6 +30,10 @@ Selection method: tournament, Crossover method: one-point, Sorted: True
 Optimal found: no
 Time (s): 77.2410340309143
 
+Selection method: tournament, Crossover method: one-point, Sorted: True
+Optimal found: no
+Time (s): 70.0823347568512
+
 Selection method: tournament, Crossover method: uniform, Sorted: True
 Optimal found: no
 Time (s): 66.44140219688416
@@ -37,3 +41,7 @@ Time (s): 66.44140219688416
 Selection method: tournament, Crossover method: uniform, Sorted: True
 Optimal found: yes
 Time (s): 115.53021907806396
+
+Selection method: tournament, Crossover method: uniform, Sorted: True
+Optimal found: yes
+Time (s): 14.660080432891846

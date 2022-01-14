@@ -13,3 +13,7 @@ Time (s): 602.4628436565399
 Selection method: tournament, Crossover method: two-point, Sorted: True
 Optimal found: no
 Time (s): 684.8534309864044
+
+Selection method: tournament, Crossover method: uniform, Sorted: True
+Optimal found: no
+Time (s): 473.2971031665802

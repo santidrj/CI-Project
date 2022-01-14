@@ -420,7 +420,7 @@ def solve_it(input_data, file_location):
         weights=weights,
         capacity=capacity,
         selection_method=GeneticAlgorithm.TOURNAMENT,
-        crossover_method=GeneticAlgorithm.UNIFORM_CROSSOVER,
+        crossover_method=GeneticAlgorithm.TWO_POINT_CROSSOVER,
         init_pop_range=[1, pop_size * 3],
         sort_values=sort,
         optimal_value=best_value,
