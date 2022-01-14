@@ -424,6 +424,7 @@ def solve_it(input_data, file_location):
         init_pop_range=[1, pop_size * 3],
         sort_values=sort,
         optimal_value=best_value,
+        # Uncomment the following line to plot the fintess evolution. Keep in mind that the plot will overwrite the current one.
         # fig_path=os.path.join("figures", f"{file_name}.png"),
     )
     start = time.time()
