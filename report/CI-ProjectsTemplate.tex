@@ -5,6 +5,7 @@
 \usepackage{adjustbox}
 \usepackage{makecell}
 \usepackage{multirow}
+\usepackage{csquotes}
 
 \makeatletter
 \def\set@curr@file#1{\def\@curr@file{#1}} %temp workaround for 2019 latex release
@@ -46,40 +47,40 @@
 \maketitle
 
 \begin{abstract}
-This is a great project and therefore it has a concise abstract.
+Knapsack problems are centered around finding an optimal distribution of values within a certain number of containers or bags, so to speak. They are classified as NP-hard and have been the subject of interest for many studies, where different kinds of solutions have been proposed. In this report we detail our own solution for a particular instance of a knapsack problem, where we make use of genetic algorithms to find the optimal assignment of multiple items. We compared this approach against more traditional exhaustive search methods, and our experiments showed that the genetic algorithm was capable of obtaining optimal results in reasonable times as long as the number of items was not exceedingly large.
 \end{abstract}
 
 \begin{keywords}
-Knapsack problem, Genetic Algorithms
+Knapsack problem, packing problems, genetic algorithms
 \end{keywords}
 
 
 \section{Problem statement and goals}
 
-One of the most popular problems studied in constrained combinatorial optimization is the knapsack problem. Given a finite set of objects with associated weights and values, the objective is to maximize the value of a collection formed by these items without exceeding a predefined weight limit.
+One of the most popular problems studied in the area of constrained combinatorial optimization is the knapsack problem. Given a finite set of objects with associated weights and values, the objective is to maximize the value of a collection formed by these items without exceeding a predefined weight limit.
 
-The knapsack problem has diverse practical applications which makes it particularly interesting. For example, it has been applied to production and inventory management \cite{ziegler1982solving}, financial models \cite{mathur1983branch} and queueing operations in computer systems \cite{gerla1977topological} or manufacturing \cite{bitran1989tradeoff}.
+The knapsack problem has diverse practical applications which makes it particularly interesting. For example, it has been applied to production and inventory management~\cite{ziegler1982solving}, financial models~\cite{mathur1983branch} and queueing operations in computer systems~\cite{gerla1977topological} or even manufacturing~\cite{bitran1989tradeoff}.
 
-There are several variations to the knapsack problem. We could consider there are multiple copies of each item or take into consideration their volume in addition to their weight. However, we will focus on the simplest case, the one dimensional 0-1 knapsack problem, where the only constraint is the weight and the number of copies of each item is limited to 1.
+There are several variations to the knapsack problem. We could consider there are multiple copies of each item or take into consideration their volume in addition to their weight. However, we will focus on the simplest case: the one dimensional 0-1 knapsack problem, where the only constraint is the weight and the number of copies of each item is limited to 1.
 
-Although the premise might look simple on the surface, this is actually an NP-hard problem. Thus, no known algorithm achieves optimal solutions in polynomial time for all cases of this problem. Still, a sufficiently good solution can be found quickly by resorting to heuristics methods. The one that we will explore is an effective and commonly used metaheuristic known as genetic algorithm.
+The premise for this particular problem is that a group of 18 ninjas must sneak into a palace and carefully choose which items they should put in their bag, the goal here being to maximize the value of the bag's contents. Although it might seem silly on the surface, this is actually an NP-hard problem. Thus, no known algorithm achieves optimal solutions in polynomial time for all cases of this problem. Still, a sufficiently good solution can be found quickly by resorting to heuristics methods. The one that we will explore is an effective and commonly used metaheuristic known as \enquote{genetic algorithm}.
 
-Genetic algorithms (GAs) belong to the family of techniques known as evolutionary algorithms. They draw inspiration from natural selection and genetic processes to provide solutions to complex optimization problems and model evolutionary systems. 
+Genetic algorithms (GAs) belong to the family of techniques known as evolutionary algorithms. They draw inspiration from natural selection and genetic processes to provide solutions to complex optimization problems and model evolutionary systems.
 
 The main process can be described as an evolutionary cycle. They first initialise a population of chromosomes, which represent candidate solutions. Some of these individuals will be drawn from the population through a selection mechanism and compared according to their fitness. In the reproduction phase, the genetic material of the best individuals will be combined to form offspring. Also, some values of the offspring’s chromosomes will be mutated. Finally, a replacement strategy is set to generate the next generation population. This process is repeated for several generations or until some convergence criterion is met.
 
-We can describe formally the 0-1 knapsack problem as follows: given a set of $n$ items and a $knapsack$ with
+We can describe formally the 0-1 knapsack problem as follows: given a set of $n$ items and a $knapsack$ with:
 \begin{center}
     $p_j = $ profit of item $j$, \\
     $w_j = $ weight of item $j$ \\
     $c = $ capacity of the knapsack, \\
 \end{center}
-select a subset of items so as to \\
+we will select a subset of items so as to obtain: \\
 \begin{center}
     maximize $z = \displaystyle \sum_{j=1}^n p_j x_j$ \\
     subject to $\displaystyle \sum_{j=1}^n w_j x_j < c,$ \\
 \end{center}
-where
+where we have that:
 $$x_j =     
     \begin{cases}
       1 & \text{if item $j$ is selected;}\\
@@ -89,19 +90,23 @@ j \in N = \{1,..., n\}
 $$
 
 
-A solution to the knapsack problem can be represented as a sequence of binary values $[x_1, x_2, ..., x_n]$. We will apply GAs to eighteen different cases, each of them specified by a file containing a value for $n$ and $c$ in the first line and values for $p_j$ and $w_j$ in subsequent lines for each object $x_j$. \\
+A solution to the knapsack problem can be represented as a sequence of binary values $[x_1, x_2, ..., x_n]$. We will apply GAs to the eighteen different cases, each of them specified by a file containing a value for $n$ and $c$ in the first line and values for $p_j$ and $w_j$ in subsequent lines for each object $x_j$. \\
 
-The goal of this project is to find the optimal solution to each of the eighteen knapsack problems proposed by applying GAs. To this end, we will have to choose and implement suitable mechanisms in each of the phases of the evolutionary cycle. The description of these methods, as well as the reasons for their election, are detailed in Section~\ref{sec:ci-methods}.
+The goal of this project is to find the optimal solution to each of the eighteen knapsack problems proposed by means of applying a GA approach. To this end, we will have to choose and implement suitable mechanisms in each of the phases of the evolutionary cycle. The description of these methods, as well as the reasons for their election, are detailed in Section~\ref{sec:ci-methods}.
 
 \section{Previous work}
 
-This is a very important part, because it puts your work in context.
+In the last few decades, there has been an impressive amount of research into knapsack problems as well as bin-packing problems, the latter being an special case where the number of containers is not fixed but rather the goal is to minimize them instead. This interest stems mainly from their simple premise and structure, which are deceptively complex and allow for many different approaches, some more efficient than others naturally.
 
-\section{The CI methods}\label{sec:ci-methods}
-When applying genetic algorithms to a problem, there are several aspects to consider, each one with its own methods. In this section, we define the different methods used in our implementation for each one of these aspects.
+Martello et al. (1997)~\cite{MARTELLO2000325} explore different kinds of exact algorithms that could be used to solve knapsack problems, mainly focused on the combination of branch-and-bound algorithms and dynamic programming. Moreover, the application of genetic algorithms to these types of problems has also proved to be particularly promising. Falkenauer (1998)~\cite{falkenauer1998} describes a Grouping Genetic Algorithm to solve bin-packing problems with great success, where its performance was superior to previous approaches and could be extended to other types of grouping problems. Mohamadi (2010)~\cite{mohamadi2010} on the other hand proposes an improved representation scheme and genetic algorithm to solve a set of 100 sample problems, and the results attest to its efficiency.
+
+All in all, previous research shows that there is merit in using genetic algorithms to solve packing problems, and their performance may even surpass other tried and tested methods based on more traditional techniques.
+
+\section{Implementation details}\label{sec:ci-methods}
+There are several aspects to consider when applying genetic algorithms to solve a problem, each one with its own methods. In this section, we define the different methods used in our implementation for each one of these aspects.
 
 \subsection{Population initialization}
-For the initialization of the population, we have used a random initialization approach, which has been traditionally used in GAs for its simplicity and efficiency. However, we introduced an initialization range parameter to give the algorithm better chances of finding the optimal solution in case we know where this solution should be. This initialization range in conjunction with the possibility of sorting the input items by their value/weight rate can highly improve the algorithm performance.
+In order to initialize the population, we used a random initialization approach that has been traditionally used in GAs for its simplicity and efficiency. However, we also introduced a parameter for the initialization range to give the algorithm better chances of finding the optimal solution, in case we already know where this solution should be. This initialization range, in conjunction with the possibility of sorting the input items by their value/weight ratio, can highly improve the algorithm's performance.
 
 \subsection{Fitness function and selection}
 To be able to assess how well an individual (i.e. possible solution) fits our objective we must first define the fitness function. For our particular problem, we defined the following fitness function:
@@ -113,7 +118,7 @@ x\bullet v & otherwise
 \end{cases}
 \end{align*}
 
-\noindent, where $x$ is the bitstring representing the individual, $w$ is the list of item weights, $v$ is the list of item values and $c$ is the knapsack capacity.
+\noindent where $x$ is the bitstring representing the individual, $w$ is the list of item weights, $v$ is the list of item values and $c$ is the knapsack capacity.
 
 Once we have the fitness function we are able to proceed to the selection step. We decided to implement the tournament and elitism selection methods for our algorithm. Particularly, we use a fixed value of $k=2$ for both tournament and elitism. We decided to use tournament selection instead of other methods such as standard roulette wheel or rank selection because of its simplicity and because seems to outperform the other approaches~\cite{razali2011genetic}. On the other hand, elitism was implemented because of its usage in the tournament selection method.
 
@@ -128,7 +133,7 @@ The final step of the GA is the replacement strategy used to obtain the new gene
 \section{Results and Discussion}
 The main objective of this project was to implement a genetic algorithm that was able to achieve optimal, or near-optimal, solutions for the knapsack problem in a reasonable amount of time when compared with the exhaustive search method. To achieve this, we tried different methodologies such as sorting the items by their value/weight ratio or by using different crossover methods.
 
-First, we started by comparing the three crossover methods implemented (i.e. one-point, two-point and uniform). In Table~\ref{tab:comparison}, we can see the results obtained with each method in three different problem sizes. We can see how the worst method,  in terms of finding the solution, is the one-point crossover since it is only able to find it for small sizes of the problem. The uniform crossover seems to outperform the two-point crossover method both in execution time and the number of times the best solution is found for small and medium-size problems. However, the two-point method is the only one able to find the best solution for the three files. Although these results are not concluding since we have not tested enough sizes, we think that this might indicate that for small and medium-sized problems the usage of uniform crossover should be preferred over the other two options and the two-point method should be used when we have a greater problem size.
+First, we started by comparing the three crossover methods implemented (i.e. one-point, two-point and uniform). In Table~\ref{tab:comparison}, we can see the results obtained with each method in three different problem sizes. We can see how the worst method,  in terms of finding the solution, is the one-point crossover since it is only able to find it for small sizes of the problem. The uniform crossover seems to outperform the two-point crossover method both in execution time and the number of times the best solution is found for small and medium-size problems. However, the two-point method is the only one able to find the best solution for the three files. Although these results are not concluding since we have not tested enough sizes, they might indicate that for small and medium-sized problems the usage of uniform crossover should be preferred over the other two options, while the two-point method should be used when we have a greater problem size.
 
 \begin{table}[htbp]
     \centering
@@ -159,7 +164,7 @@ Looking at Table~\ref{tab:results}, it is possible to observe the following:
 \begin{enumerate}
     \item It was possible to get the optimal value for $\sim89\%$ of the files tried.
     \begin{enumerate}
-        \item For sol\_17 and sol\_18 we obtained sub-optimal solutions close to the optimal solution but due to the restriction of stall generations, the algorithm was not able to produce better results.
+        \item For sol\_17 and sol\_18 we obtained sub-optimal solutions close to the optimal solution but, due to the restriction of stall generations, the algorithm was not able to produce better results.
     \end{enumerate}
     
     \item There is a strong correlation between the number of items and the time it takes to find the optimal solution. That is, a Pearson correlation of 0.9873 for the runs without sort and 0.9979 for the runs with sort. However, certain files do not follow this trend. For instance, if we compare the results from sol\_12 and sol\_3 we see how the problem with more items (i.e. sol\_12) needs more or less the same time as the solution with fewer items (i.e. sol\_3) and even finds the optimal with more frequency. This is a behaviour that we would usually not expect.
@@ -219,9 +224,9 @@ Looking at Table~\ref{tab:results}, it is possible to observe the following:
     \label{tab:results}
 \end{table}
 
-It is interesting to find that sorting the items by their value/weight ratio yielded excellent results. We think that the reason is that sorting the items makes the best ratios to be found in the lower section of the bitstring (i.e. the bits belonging to the right half). If we combine this with a relatively small population range it is possible to get the first generation with a high fitness value and even it is possible to find the optimal solution amidst the initial generation. In the reproduction step, having this configuration helps next generations to improve their fitness score faster. This can be observed in the time required to find the solution in all the files tried. There might be some cases where the best solution is found by combining low value/weight ratio items or that there is not much difference in ratio between items. This could cause the sorting to have a lower impact on the final performance but still higher than the no sorting option.
+It is interesting to find that sorting the items by their value/weight ratio yielded excellent results. We think the reason for this is that sorting the items ends up placing the best ratios in the lower section of the bitstring (i.e. the bits belonging to the right half). If we combine this with a relatively small population range, it is likely to get the first generation with a high fitness value and it is even possible to find the optimal solution among the initial generation. In the reproduction step, having this configuration helps next generations to improve their fitness score faster. This can be observed in the time required to find the solution in all the files tried. There might be some cases where the best solution is found by combining low value/weight ratio items or that there is not much difference in ratio between items. This could cause the sorting to have a lower impact on the final performance but it is still higher than the no sorting option.
 
-Regarding the evolution of the fitness value throughout the different generations, most of the plots obtained (can be found in the submitted project) share the same trend. The fitness tends to flatten at the beginning after a few epochs/generations when a high value is reached. The flattening happens because we keep the best value found in subsequent iterations. However, we think that because of the mutation process that happens in each generation the GA can break out and find even higher fitness values. This can be observed in the graphics by the layered shape obtained. As an example, Figure~\ref{fig:fitness-evol} shows the fitness progression for the last file ninja\_18\_10000 where 10000 items were used.
+Regarding the evolution of the fitness value throughout the different generations, most of the plots obtained (can be found within the project folder) share the same trend. The fitness tends to flatten at the beginning after a few epochs/generations when a high value is reached. The flattening happens because we keep the best value found in subsequent iterations. However, we think that because of the mutation process that happens in each generation, the GA can break out and find even higher fitness values. This can be observed in the graphics by the layered shape obtained. As an example, Figure~\ref{fig:fitness-evol} shows the fitness progression for the last file ninja\_18\_10000, where 10000 items were used.
 
 \begin{figure}[htbp]
 \floatconts
@@ -237,7 +242,7 @@ Regarding the evolution of the fitness value throughout the different generation
 
 After seeing the results obtained from our GA implementation we have detected some strengths and weaknesses in it.
 
-Starting with its strengths, we have seen how the algorithm can find the optimal solution in a reasonable amount of time in most cases. This is a very good result since we usually would expect to obtain sub-optimal results. Also, we noticed that the algorithm can find multiple optimal solutions for some of the problems. Being able to find several optimal solutions to one problem opens the possibility to introducing new factors when deciding which one best suits us. This can be considered a strength compared to the standard exhaustive search algorithm since the latter is only able to find one possible solution. Another strong point of our solution is its simplicity since it does not require complex functions or procedures to achieve good results. We consider that this makes the algorithm easy to understand and extensible to other problems that can be represented as bitstrings.
+Starting with its strengths, we have seen how the algorithm can find the optimal solution in a reasonable amount of time in most cases. This is a very good outcome since we would usually expect to obtain sub-optimal results. Also, we noticed that the algorithm can find multiple optimal solutions for some of the problems. Being able to find several optimal solutions to one problem opens the possibility to introducing new factors when deciding which one best suits us. This can be considered a strength compared to the standard exhaustive search algorithm since the latter is only able to find one possible solution. Another strong point of our solution is its simplicity, since it does not require complex functions or procedures to achieve good results. We consider that this makes the algorithm easy to understand and thus adaptable to other problems that can be represented as bitstrings.
 
 Following with its weaknesses, we have seen how the algorithm struggles when the size of the problem increases dramatically (e.g. 1000 or 10000 items). In these cases, we observed how the exhaustive search outperformed our algorithm in terms of solution quality and time complexity since it could find the optimal solution in less time. Also, for some problems, we observed how successive executions performed considerably different when looking at the execution time and the solution obtained. From this, we infer that the GA is highly dependent on the initialization of the initial population.
 
@@ -245,13 +250,13 @@ Following with its weaknesses, we have seen how the algorithm struggles when the
 
 The genetic algorithm implemented has proven to be a good heuristic for generating approximate solutions of the unidimensional 0-1 knapsack problem. The results achieved were optimal or near-optimal in the eighteen scenarios studied despite the imposition of stopping criteria. 
 
-We noted how the performance of the system improves drastically when the data is preprocessed suitably. Having a good understanding of the problem representation and the internal mechanisms in a GA is essential for this preliminary step.
+We also noted how the performance of the system improves drastically when the data is preprocessed suitably. Having a good understanding of the problem representation and the internal mechanisms in a GA is essential for this preliminary step.
 
-Another aspect that determines the performance of the system is, of course, the strategies implemented in each phase of the evolutionary cycle. We counted with several methods to choose from at each step which makes these systems very flexible and adaptable. This along with a proper selection of parameters allowed us to tailor the algorithm to the problem.
+Another aspect that determines the performance of the system is of course the strategies implemented in each phase of the evolutionary cycle. We relied on several methods to choose from at each step which makes these systems very flexible and adaptable. This in turn, along with a proper selection of parameters, allowed us to tailor the algorithm to the problem.
 
-There are ways to further optimize the developed method. As we mentioned earlier, GAs are highly sensitive to the population seeding technique. The random initialization of the population can generate individuals with poor fitness, which increases the time needed to achieve optimality. Instead, we could resort to better seeding techniques such as Sorted Population ~\cite{yugay2008hybrid}, which creates a large initial population, sorts it in ascending order according to their fitness and chooses a percentage of individuals that have above average fitness. This and other initialization techniques like Nearest Neighbour or Gene Bank were described and compared by~\cite{hassanat2018improved}.
+Nonetheless, there are ways to further optimize our solution. As mentioned earlier, GAs are highly sensitive to the population seeding technique. The random initialization of the population can generate individuals with poor fitness, which increases the time needed to achieve optimality. Instead, we could resort to better seeding techniques such as Sorted Population ~\cite{yugay2008hybrid}, which creates a large initial population, sorts it in ascending order according to their fitness and chooses a percentage of individuals that have above average fitness. This and other initialization techniques like Nearest Neighbour or Gene Bank were described and compared by~\cite{hassanat2018improved}.
 
-As we have seen in Section~\ref{sec:strengths}, one of the main weaknesses of our algorithm is that its execution time increases dramatically with the problem size. One way to slightly improve this issue could be to parallelize the reproduction process. In this way, we could randomly split the population into multiple batches and then perform the reproduction step simultaneously for each batch. With this, we only would need to wait for the slowest batch to finish and then join all the resulting offspring together to perform the replacement step.
+As we have seen in Section~\ref{sec:strengths}, one of the main weaknesses of our algorithm is that its execution time increases dramatically with the problem size. One way to mitigate this issue would be to parallelize the reproduction process. In this way, we could randomly split the population into multiple batches and then perform the reproduction step simultaneously for each batch. Given that, we only would need to wait for the slowest batch to finish and then join all the resulting offspring together to perform the replacement step.
 
 
 \clearpage

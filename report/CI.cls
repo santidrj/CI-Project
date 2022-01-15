@@ -23,7 +23,7 @@
  \newcommand{\coltauthor}[1]{}
  \author{author names withheld}
 % \editor{Proposal for term project}
- \jmlrworkshop{Computational Intelligence (MAI) - 2017-18}
+ \jmlrworkshop{Computational Intelligence (MAI) - 2021-22}
  \renewcommand{\acks}[1]{}
 \else
 % \newcommand{\coltauthor}[1]{\author{#1}}
