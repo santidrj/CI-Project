@@ -175,7 +175,7 @@ class GeneticAlgorithm:
     def fitness_value(self, chromosomes):
         fitness_values = np.zeros(chromosomes.shape[0])
         for i, chromosome in enumerate(chromosomes):
-            # If the chromosome exceeds the capacity its value is 0.
+            # If the chromosome exceeds the capacity its value is np.NINF.
             # Otherwise, the value is the total value of the items it selected.
             if np.dot(self.weights, chromosome) > self.capacity:
                 fitness_values[i] = np.NINF
@@ -258,7 +258,7 @@ class GeneticAlgorithm:
         for _ in tqdm(range(self.n_generations), leave=False):
             population_idx = np.arange(self.population_size)
             offspring = np.zeros(self.population.shape, dtype=np.int8)
-            k = 2
+            k = 2 # Number of K randomly chosen individuals in tournament selection
             for i in range(0, self.population_size, 2):
                 if len(population_idx) > k:
                     parent1_idx = self.selection(
